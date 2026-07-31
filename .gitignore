@@ -1,0 +1,41 @@
+# Logs
+logs/*
+
+# Cache
+cache/*
+
+# Temp
+tmp/*
+
+# Backup
+*.bak
+
+# Swap
+*.swp
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Shell
+*.log
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+build/
+
+# Archives
+*.zip
+*.tar
+*.gz
