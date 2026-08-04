@@ -4,8 +4,8 @@ set -euo pipefail
 
 dem_title "Uninstall Meilisearch"
 
-systemctl stop meilisearch || true
-systemctl disable meilisearch || true
+dem_service_stop meilisearch || true
+dem_service_disable meilisearch || true
 
 dem_package_remove meilisearch
 

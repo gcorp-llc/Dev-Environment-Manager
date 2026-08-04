@@ -4,8 +4,8 @@ set -euo pipefail
 
 dem_title "Uninstall ScyllaDB"
 
-systemctl stop scylla-server || true
-systemctl disable scylla-server || true
+dem_service_stop scylla-server || true
+dem_service_disable scylla-server || true
 
 dem_package_remove scylla-server
 

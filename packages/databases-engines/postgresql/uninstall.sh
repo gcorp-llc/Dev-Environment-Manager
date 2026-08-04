@@ -4,8 +4,8 @@ set -euo pipefail
 
 dem_title "Uninstall PostgreSQL"
 
-systemctl stop postgresql || true
-systemctl disable postgresql || true
+dem_service_stop postgresql || true
+dem_service_disable postgresql || true
 
 dem_package_remove postgresql postgresql-contrib
 

@@ -6,7 +6,7 @@ dem_title "Verify Docker"
 
 dem_require_command docker
 
-if systemctl is-active --quiet docker; then
+if dem_service_running docker; then
     dem_success "Docker service is running."
 else
     dem_fatal "Docker service is not running."

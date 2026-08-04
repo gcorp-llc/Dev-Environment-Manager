@@ -4,7 +4,7 @@ set -euo pipefail
 
 dem_title "Verify PostgreSQL"
 
-systemctl is-active --quiet postgresql || true
+dem_service_running postgresql || true
 dem_require_command psql
 
 # Run a simple query to verify connection

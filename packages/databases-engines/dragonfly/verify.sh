@@ -14,7 +14,7 @@ fi
 # Verify daemon
 if systemctl list-unit-files | grep -qi "dragonfly"; then
     SERVICE_NAME=$(systemctl list-unit-files | grep -oE "dragonfly[^. ]*" | head -n1)
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
+    if dem_service_running "$SERVICE_NAME"; then
         dem_success "dragonfly service is running."
     else
         dem_warning "dragonfly service is registered but not active."

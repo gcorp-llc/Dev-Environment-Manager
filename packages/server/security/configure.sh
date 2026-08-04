@@ -5,11 +5,11 @@ set -euo pipefail
 dem_title "Configure Server Security"
 
 # Enable and start services
-systemctl enable ufw || true
-systemctl start ufw || true
+dem_service_enable ufw || true
+dem_service_start ufw || true
 
-systemctl enable fail2ban || true
-systemctl start fail2ban || true
+dem_service_enable fail2ban || true
+dem_service_start fail2ban || true
 
 # Standard UFW configuration (allow SSH first so we do not get locked out)
 ufw allow ssh || true

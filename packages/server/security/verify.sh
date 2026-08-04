@@ -8,7 +8,7 @@ dem_require_command ufw
 dem_require_command fail2ban-client
 
 # Verify fail2ban is active
-if systemctl is-active --quiet fail2ban; then
+if dem_service_running fail2ban; then
     dem_success "fail2ban service is running."
 else
     dem_fatal "fail2ban service is not running."

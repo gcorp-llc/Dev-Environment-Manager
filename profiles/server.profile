@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 DEM_PROFILE_NAME="server"
 
 DEM_MODULES=(
