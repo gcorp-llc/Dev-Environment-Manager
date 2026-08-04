@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
-dem_title "Core packages cannot be uninstalled."
+set -euo pipefail
 
-exit 0
+dem_title "Uninstall Core"
+
+dem_warning "Core packages and repositories cannot be fully uninstalled as they are essential for the system stability."
