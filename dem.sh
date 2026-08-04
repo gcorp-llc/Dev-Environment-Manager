@@ -26,10 +26,11 @@ cat <<EOF
 
 Usage
 
-  ./dem.sh install desktop
-  ./dem.sh install server
-
-  ./dem.sh uninstall
+  ./dem.sh install [profile]
+  ./dem.sh uninstall [profile]
+  ./dem.sh configure [profile]
+  ./dem.sh verify [profile]
+  ./dem.sh remove [profile]
 
   ./dem.sh doctor
 
@@ -77,7 +78,39 @@ run_uninstall() {
 
     load_command uninstall
 
-    dem_command_uninstall
+    shift
+
+    dem_command_uninstall "$@"
+
+}
+
+run_configure() {
+
+    load_command configure
+
+    shift
+
+    dem_command_configure "$@"
+
+}
+
+run_verify() {
+
+    load_command verify
+
+    shift
+
+    dem_command_verify "$@"
+
+}
+
+run_remove() {
+
+    load_command remove
+
+    shift
+
+    dem_command_remove "$@"
 
 }
 
@@ -165,7 +198,25 @@ main() {
 
         uninstall)
 
-            run_uninstall
+            run_uninstall "$@"
+
+            ;;
+
+        configure)
+
+            run_configure "$@"
+
+            ;;
+
+        verify)
+
+            run_verify "$@"
+
+            ;;
+
+        remove)
+
+            run_remove "$@"
 
             ;;
 

@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 
-dem_title "Remove Docker"
+set -euo pipefail
 
-systemctl stop docker 2>/dev/null
+dem_title "Uninstall Docker"
 
-apt purge -y \
-    docker.io \
-    docker-compose-v2 \
-    containerd \
-    runc
+# Stop docker service
+systemctl stop docker || true
+systemctl disable docker || true
 
-apt autoremove -y
+dem_package_remove \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
 
-rm -rf /var/lib/docker
-rm -rf /var/lib/containerd
-rm -rf /etc/docker
-
-dem_success "Docker removed."
+dem_success "Docker uninstalled."

@@ -2,12 +2,13 @@
 
 DEM_PROFILE_NAME="server"
 
-DEM_INSTALL_CORE=true
-DEM_INSTALL_DEVELOPMENT=true
-DEM_INSTALL_DOCKER=true
-DEM_INSTALL_DATABASE=true
-DEM_INSTALL_OFFICE=false
-DEM_INSTALL_FONTS=false
-DEM_INSTALL_UTILITIES=true
-DEM_INSTALL_SECURITY=true
-DEM_INSTALL_MONITORING=true
+DEM_MODULES=(
+    "core"
+    "system"
+    "docker"
+    "databases"
+    "languages"
+    "databases-engines"
+    "tools"
+    "server"
+)

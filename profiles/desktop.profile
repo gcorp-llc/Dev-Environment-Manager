@@ -2,12 +2,16 @@
 
 DEM_PROFILE_NAME="desktop"
 
-DEM_INSTALL_CORE=true
-DEM_INSTALL_DEVELOPMENT=true
-DEM_INSTALL_DOCKER=true
-DEM_INSTALL_DATABASE=true
-DEM_INSTALL_OFFICE=true
-DEM_INSTALL_FONTS=true
-DEM_INSTALL_UTILITIES=true
-DEM_INSTALL_SECURITY=false
-DEM_INSTALL_MONITORING=false
+DEM_MODULES=(
+    "core"
+    "system"
+    "development"
+    "docker"
+    "databases"
+    "languages"
+    "databases-engines"
+    "frameworks"
+    "office"
+    "tools"
+    "desktop"
+)
