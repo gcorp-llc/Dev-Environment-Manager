@@ -15,4 +15,8 @@ dem_package_remove \
     docker-buildx-plugin \
     docker-compose-plugin
 
+# Remove repository configuration
+rm -f /etc/apt/sources.list.d/docker.list
+rm -f /etc/apt/keyrings/docker-archive-keyring.gpg
+
 dem_success "Docker uninstalled."

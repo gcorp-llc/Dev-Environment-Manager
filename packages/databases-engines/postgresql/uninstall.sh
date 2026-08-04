@@ -9,4 +9,8 @@ systemctl disable postgresql || true
 
 dem_package_remove postgresql postgresql-contrib
 
+# Remove repository configuration
+rm -f /etc/apt/sources.list.d/pgdg.list
+rm -f /etc/apt/keyrings/postgresql.gpg
+
 dem_success "PostgreSQL uninstalled."
