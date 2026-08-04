@@ -16,7 +16,7 @@ if [[ -n "${SUDO_USER:-}" ]] && [[ "$SUDO_USER" != "root" ]]; then
 fi
 
 # Enable and start docker service using systemd helpers or standard systemctl
-systemctl enable docker || true
-systemctl start docker || true
+dem_service_enable docker || true
+dem_service_start docker || true
 
 dem_success "Docker configured and service started."

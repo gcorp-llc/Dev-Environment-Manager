@@ -5,8 +5,8 @@ set -euo pipefail
 dem_title "Uninstall Docker"
 
 # Stop docker service
-systemctl stop docker || true
-systemctl disable docker || true
+dem_service_stop docker || true
+dem_service_disable docker || true
 
 dem_package_remove \
     docker-ce \

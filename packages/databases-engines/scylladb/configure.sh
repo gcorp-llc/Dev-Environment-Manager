@@ -9,7 +9,7 @@ if dem_command_exists scylla_setup; then
     scylla_setup --developer-mode --no-raid-setup --no-coredump-setup --no-ntp-setup --no-fstrim-setup || true
 fi
 
-systemctl enable scylla-server || true
-systemctl start scylla-server || true
+dem_service_enable scylla-server || true
+dem_service_start scylla-server || true
 
 dem_success "ScyllaDB configured."

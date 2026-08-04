@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 dem_command_profile() {
 
     case "${1:-list}" in

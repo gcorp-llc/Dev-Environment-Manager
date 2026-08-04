@@ -5,7 +5,7 @@ set -euo pipefail
 dem_title "Verify Server Monitoring"
 
 # Verify service is active
-if systemctl is-active --quiet prometheus-node-exporter; then
+if dem_service_running prometheus-node-exporter; then
     dem_success "prometheus-node-exporter service is active."
 else
     dem_fatal "prometheus-node-exporter service is not active."

@@ -10,8 +10,8 @@ chown -R meilisearch:meilisearch /etc/meilisearch
 
 # Enable and start meilisearch service (configure for development env)
 if systemctl list-unit-files | grep -qi "meilisearch"; then
-    systemctl enable meilisearch || true
-    systemctl start meilisearch || true
+    dem_service_enable meilisearch || true
+    dem_service_start meilisearch || true
 else
     # If no service file was installed by deb, create one
     cat << 'EOF' > /etc/systemd/system/meilisearch.service
@@ -31,8 +31,8 @@ EOF
     mkdir -p /var/lib/meilisearch/data
     chown -R meilisearch:meilisearch /var/lib/meilisearch
     systemctl daemon-reload
-    systemctl enable meilisearch || true
-    systemctl start meilisearch || true
+    dem_service_enable meilisearch || true
+    dem_service_start meilisearch || true
 fi
 
 dem_success "Meilisearch configured."

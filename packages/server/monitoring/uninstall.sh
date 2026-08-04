@@ -4,8 +4,8 @@ set -euo pipefail
 
 dem_title "Uninstall Server Monitoring"
 
-systemctl stop prometheus-node-exporter || true
-systemctl disable prometheus-node-exporter || true
+dem_service_stop prometheus-node-exporter || true
+dem_service_disable prometheus-node-exporter || true
 
 dem_package_remove prometheus-node-exporter
 

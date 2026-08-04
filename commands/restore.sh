@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 dem_command_restore() {
 
     dem_validate_root
