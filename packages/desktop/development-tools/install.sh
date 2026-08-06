@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Desktop Development Tools"
 
 # 1. Setup VS Code repository configuration & key

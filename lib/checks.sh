@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_check_debian() {
 
     source /etc/os-release

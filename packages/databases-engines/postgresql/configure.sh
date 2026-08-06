@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure PostgreSQL"
 
 dem_service_enable postgresql || true

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Server - Uninstallation"
 
 source "$DEM_PACKAGE_DIR/server/monitoring/uninstall.sh"

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Languages - Installation"
 
 source "$DEM_PACKAGE_DIR/languages/rust/install.sh"

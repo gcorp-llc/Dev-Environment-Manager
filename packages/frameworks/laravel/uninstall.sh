@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall Laravel"
 
 rm -f /usr/local/bin/composer

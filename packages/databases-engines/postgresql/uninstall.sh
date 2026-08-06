@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall PostgreSQL"
 
 dem_service_stop postgresql || true

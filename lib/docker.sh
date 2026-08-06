@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_docker_installed() {
 
     dem_command_exists docker

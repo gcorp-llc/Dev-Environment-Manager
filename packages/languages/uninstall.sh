@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Languages - Uninstallation"
 
 source "$DEM_PACKAGE_DIR/languages/go/uninstall.sh"

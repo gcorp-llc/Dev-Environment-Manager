@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_command_doctor() {
 
     dem_banner
@@ -82,28 +80,44 @@ dem_command_doctor() {
     local shebang_errors=0
     local shebang_err_files=()
     while IFS= read -r -d '' f; do
-        if [[ "$f" == "./lib/"* ]]; then
-            # Library files must NOT have a shebang
+        local rel_f="${f#./}"
+        if [[ "$rel_f" == "config.sh" || "$rel_f" == "lib/"* ]]; then
+            # Library/config files must NOT have a shebang
             if head -n 1 "$f" | grep -q "^#!" 2>/dev/null; then
                 shebang_errors=1
-                shebang_err_files+=("$f (library file must not contain a shebang)")
+                shebang_err_files+=("$rel_f (library/config file must not contain a shebang)")
             fi
         else
-            # Executable files must begin exactly with #!/usr/bin/env bash
+            # Executable/script files must begin exactly with:
+            # #!/usr/bin/env bash
+            # set -euo pipefail (or set -Eeuo pipefail)
             local first_line
-            first_line=$(head -n 1 "$f" 2>/dev/null || echo "")
+            local second_line
+            first_line=$(sed -n '1p' "$f" 2>/dev/null || echo "")
+            second_line=$(sed -n '2p' "$f" 2>/dev/null || echo "")
+
+            # Check for UTF-8 BOM
+            if head -c 3 "$f" | grep -q $'\xEF\xBB\xBF' 2>/dev/null; then
+                shebang_errors=1
+                shebang_err_files+=("$rel_f (contains UTF-8 BOM)")
+                continue
+            fi
+
             if [[ "$first_line" != "#!/usr/bin/env bash" ]]; then
                 shebang_errors=1
-                shebang_err_files+=("$f (invalid shebang: '$first_line')")
+                shebang_err_files+=("$rel_f (invalid shebang: '$first_line')")
+            elif [[ "$second_line" != "set -euo pipefail" && "$second_line" != "set -Eeuo pipefail" ]]; then
+                shebang_errors=1
+                shebang_err_files+=("$rel_f (invalid second line: '$second_line', expected 'set -euo pipefail' or 'set -Eeuo pipefail' without blank lines)")
             fi
         fi
-    done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -print0)
 
     if [[ $shebang_errors -eq 0 ]]; then
         dem_success "Shebang Headers: Verified correct shebang headers."
         passes=$((passes + 1))
     else
-        dem_error "Shebang Headers: Invalid shebangs found in: ${shebang_err_files[*]}"
+        dem_error "Shebang Headers: Invalid shebangs/headers found in:\n$(printf '  - %s\n' "${shebang_err_files[@]}")"
         errors=$((errors + 1))
     fi
 
@@ -111,23 +125,26 @@ dem_command_doctor() {
     local perm_errors=0
     local perm_err_files=()
     while IFS= read -r -d '' f; do
-        if [[ "$f" == "./lib/"* ]]; then
-            # Library files must NOT be executable
+        local rel_f="${f#./}"
+        if [[ "$rel_f" == "config.sh" || "$rel_f" == "lib/"* ]]; then
+            # Library files/config must NOT be executable
             if [[ -x "$f" ]]; then
                 perm_errors=1
-                perm_err_files+=("$f (library file is executable)")
+                perm_err_files+=("$rel_f (library/config file is executable)")
             fi
         else
-            # Executable files must be executable
-            if [[ ! -x "$f" ]]; then
-                perm_errors=1
-                perm_err_files+=("$f (missing executable permission)")
+            # Executable files must be executable (excluding .profile scripts as they are only sourced)
+            if [[ "$rel_f" != "profiles/"* ]]; then
+                if [[ ! -x "$f" ]]; then
+                    perm_errors=1
+                    perm_err_files+=("$rel_f (missing executable permission)")
+                fi
             fi
         fi
     done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
 
     # Check root scripts
-    for rscript in dem.sh bootstrap.sh config.sh; do
+    for rscript in dem.sh bootstrap.sh; do
         if [[ -f "$rscript" && ! -x "$rscript" ]]; then
             perm_errors=1
             perm_err_files+=("$rscript (missing executable permission)")

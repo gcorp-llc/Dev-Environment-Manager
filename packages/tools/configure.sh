@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure CLI Tools"
 
 # Ensure fd-find has a softlink for 'fd' (Debian installs it as 'fdfind')

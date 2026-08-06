@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Languages - Verification"
 
 source "$DEM_PACKAGE_DIR/languages/rust/verify.sh"

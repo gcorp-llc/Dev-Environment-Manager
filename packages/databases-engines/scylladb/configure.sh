@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure ScyllaDB"
 
 # Setup ScyllaDB in developer mode if scylla_setup is present

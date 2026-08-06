@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure System"
 
 # 1. Timezone Configuration (Never overwrite existing custom settings)

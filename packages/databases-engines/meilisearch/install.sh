@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Meilisearch"
 
 # Create dedicated user if not already present

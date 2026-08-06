@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure React Native"
 
 # If we need custom paths for JDK or Node global modules

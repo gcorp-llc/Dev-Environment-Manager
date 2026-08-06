@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Server - Verification"
 
 source "$DEM_PACKAGE_DIR/server/security/verify.sh"

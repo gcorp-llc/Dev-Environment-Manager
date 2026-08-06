@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify Desktop Fonts"
 
 # Check if font paths exist or verify using fc-list

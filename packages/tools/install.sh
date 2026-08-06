@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Developer CLI Tools & Utilities"
 
 # 1. Add Third Party Repositories for Tools

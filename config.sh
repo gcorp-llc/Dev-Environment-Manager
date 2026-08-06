@@ -1,10 +1,8 @@
-#!/usr/bin/env bash
-
 readonly DEM_NAME="Dev Environment Manager"
 
 readonly DEM_SHORT_NAME="DEM"
 
-readonly DEM_VERSION="1.0.0"
+readonly DEM_VERSION="v1.0.0"
 
 readonly DEM_AUTHOR="Hossein Eftekharrad"
 

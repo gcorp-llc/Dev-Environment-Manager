@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Docker"
 
 # 1. Setup official signed Docker APT Repository

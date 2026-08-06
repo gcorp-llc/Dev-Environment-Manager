@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_download() {
 
     curl -fsSL "$1" -o "$2"

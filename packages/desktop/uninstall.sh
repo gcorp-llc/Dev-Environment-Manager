@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Desktop - Uninstallation"
 
 source "$DEM_PACKAGE_DIR/desktop/development-tools/uninstall.sh"

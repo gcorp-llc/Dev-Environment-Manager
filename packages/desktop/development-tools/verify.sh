@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify Desktop Development Tools"
 
 dem_require_command code
