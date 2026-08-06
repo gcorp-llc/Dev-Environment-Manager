@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_log() {
 
     local level="$1"

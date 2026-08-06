@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 readonly DEM_RESET="\033[0m"
 
 readonly DEM_BLACK="\033[30m"

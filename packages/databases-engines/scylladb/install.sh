@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "ScyllaDB"
 
 # 1. Setup Repository for ScyllaDB

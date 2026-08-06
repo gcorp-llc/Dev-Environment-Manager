@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_command_repair() {
 
     dem_title "Repository & Workspace Repair"
@@ -92,56 +90,70 @@ EOF
     dem_info "Repairing shebang headers..."
     local shebang_count=0
     while IFS= read -r -d '' f; do
-        if [[ "$f" == "./lib/"* ]]; then
-            # Library scripts: should not have a shebang
+        local rel_f="${f#./}"
+        if [[ "$rel_f" == "config.sh" || "$rel_f" == "lib/"* ]]; then
+            # Library/config files: should not have a shebang
             if head -n 1 "$f" | grep -q "^#!" 2>/dev/null; then
-                # Remove first line
                 local temp_f
                 temp_f=$(mktemp)
                 tail -n +2 "$f" > "$temp_f"
                 # Strip leading blank lines
-                while [[ "$(head -n 1 "$temp_f")" == "" ]]; do
+                while [[ -s "$temp_f" && "$(head -n 1 "$temp_f" 2>/dev/null || echo "")" == "" ]]; do
                     tail -n +2 "$temp_f" > "${temp_f}.tmp" && mv "${temp_f}.tmp" "$temp_f"
                 done
                 cat "$temp_f" > "$f"
                 rm -f "$temp_f"
-                dem_info "Removed shebang from library script: $f"
+                dem_info "Removed shebang from library/config script: $rel_f"
                 shebang_count=$((shebang_count + 1))
             fi
         else
-            # Executable scripts: should have exactly #!/usr/bin/env bash
+            # Executable/script files: should start with exactly:
+            # #!/usr/bin/env bash
+            # set -euo/set -Eeuo pipefail (without blank lines)
             local temp_f
             temp_f=$(mktemp)
-            # Remove BOM if present, remove leading empty lines, ensure clean shebang
+            # Remove UTF-8 BOM if present
             sed -e '1s/^\xEF\xBB\xBF//' "$f" > "$temp_f"
-            while [[ "$(head -n 1 "$temp_f")" == "" ]]; do
-                tail -n +2 "$temp_f" > "${temp_f}.tmp" && mv "${temp_f}.tmp" "$temp_f"
+
+            # Detect original set mode (-Eeuo pipefail or -euo pipefail)
+            local set_mode="set -euo pipefail"
+            if grep -q "set -Eeuo pipefail" "$temp_f"; then
+                set_mode="set -Eeuo pipefail"
+            fi
+
+            # Remove any existing shebang or set -euo/set -Eeuo pipefail lines
+            local temp_filtered
+            temp_filtered=$(mktemp)
+            grep -v -E "(^#!|^set -[Ee]?euo pipefail)" "$temp_f" > "$temp_filtered" || true
+
+            # Strip leading blank lines
+            local temp_stripped
+            temp_stripped=$(mktemp)
+            cat "$temp_filtered" > "$temp_stripped"
+            while [[ -s "$temp_stripped" && "$(head -n 1 "$temp_stripped" 2>/dev/null || echo "")" == "" ]]; do
+                tail -n +2 "$temp_stripped" > "${temp_stripped}.tmp" 2>/dev/null && mv "${temp_stripped}.tmp" "$temp_stripped"
             done
 
-            local first_line
-            first_line=$(head -n 1 "$temp_f" 2>/dev/null || echo "")
-            if [[ "$first_line" != "#!/usr/bin/env bash" ]]; then
-                if [[ "$first_line" == "#!"* ]]; then
-                    # Replace the existing shebang with the correct one
-                    sed -i "1s|^.*$|#!/usr/bin/env bash|" "$temp_f"
-                else
-                    # Prepend correct shebang
-                    local shebang_prepended
-                    shebang_prepended=$(mktemp)
-                    echo -e "#!/usr/bin/env bash\n" > "$shebang_prepended"
-                    cat "$temp_f" >> "$shebang_prepended"
-                    mv "$shebang_prepended" "$temp_f"
-                fi
-                cat "$temp_f" > "$f"
-                dem_info "Repaired shebang header in script: $f"
+            # Prepend exact header with no empty line in between
+            local temp_final
+            temp_final=$(mktemp)
+            echo "#!/usr/bin/env bash" > "$temp_final"
+            echo "$set_mode" >> "$temp_final"
+            cat "$temp_stripped" >> "$temp_final"
+
+            # See if anything changed
+            if ! cmp -s "$f" "$temp_final"; then
+                cat "$temp_final" > "$f"
+                dem_info "Repaired shebang and set headers in: $rel_f"
                 shebang_count=$((shebang_count + 1))
             fi
-            rm -f "$temp_f"
+
+            rm -f "$temp_f" "$temp_filtered" "$temp_stripped" "$temp_final"
         fi
-    done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -print0)
 
     if [[ $shebang_count -gt 0 ]]; then
-        dem_success "Repaired $shebang_count shebang header(s)."
+        dem_success "Repaired $shebang_count shebang header(s) / formatting."
     else
         dem_success "Shebang Headers: Already clean."
     fi
@@ -150,30 +162,33 @@ EOF
     dem_info "Repairing executable permissions..."
     local perm_count=0
     while IFS= read -r -d '' f; do
-        if [[ "$f" == "./lib/"* ]]; then
-            # Library: should not be executable
+        local rel_f="${f#./}"
+        if [[ "$rel_f" == "config.sh" || "$rel_f" == "lib/"* ]]; then
+            # Library/config: should not be executable
             if [[ -x "$f" ]]; then
                 chmod -x "$f"
                 if [[ -d ".git" ]]; then
                     git update-index --chmod=-x "$f" || true
                 fi
-                dem_info "Removed executable permission from library: $f"
+                dem_info "Removed executable permission from library/config: $rel_f"
                 perm_count=$((perm_count + 1))
             fi
         else
-            # Executable scripts: should be executable
-            if [[ ! -x "$f" ]]; then
-                chmod +x "$f"
-                if [[ -d ".git" ]]; then
-                    git update-index --chmod=+x "$f" || true
+            # Executable scripts: should be executable (excluding .profile scripts)
+            if [[ "$rel_f" != "profiles/"* ]]; then
+                if [[ ! -x "$f" ]]; then
+                    chmod +x "$f"
+                    if [[ -d ".git" ]]; then
+                        git update-index --chmod=+x "$f" || true
+                    fi
+                    dem_info "Added executable permission to script: $rel_f"
+                    perm_count=$((perm_count + 1))
                 fi
-                dem_info "Added executable permission to script: $f"
-                perm_count=$((perm_count + 1))
             fi
         fi
     done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
 
-    for rscript in dem.sh bootstrap.sh config.sh; do
+    for rscript in dem.sh bootstrap.sh; do
         if [[ -f "$rscript" && ! -x "$rscript" ]]; then
             chmod +x "$rscript"
             if [[ -d ".git" ]]; then

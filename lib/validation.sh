@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_validate_environment() {
 
     dem_check_debian || dem_fatal "Unsupported distribution."

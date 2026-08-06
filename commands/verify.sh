@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_command_verify() {
 
     local profile="${1:-desktop}"

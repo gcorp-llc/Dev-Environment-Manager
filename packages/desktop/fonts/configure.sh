@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Configure Desktop Fonts"
 
 # Run fc-cache to update font caches

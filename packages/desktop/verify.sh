@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Desktop - Verification"
 
 source "$DEM_PACKAGE_DIR/desktop/fonts/verify.sh"

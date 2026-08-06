@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Frameworks - Configuration"
 
 source "$DEM_PACKAGE_DIR/frameworks/laravel/configure.sh"

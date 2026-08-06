@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall Server Security"
 
 dem_service_stop fail2ban || true

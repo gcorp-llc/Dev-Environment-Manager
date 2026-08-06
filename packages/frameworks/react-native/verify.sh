@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify React Native & Expo Development Environment"
 
 # Verify all mandatory commands are present

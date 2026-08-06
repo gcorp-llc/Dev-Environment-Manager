@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "React Native & Expo Tools"
 
 # Ensure we have default OpenJDK installed for Android build tooling

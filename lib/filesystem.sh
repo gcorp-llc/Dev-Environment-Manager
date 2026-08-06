@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_mkdir() {
 
     mkdir -p "$1"

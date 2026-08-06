@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall ScyllaDB"
 
 dem_service_stop scylla-server || true

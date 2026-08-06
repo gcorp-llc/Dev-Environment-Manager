@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall DragonflyDB"
 
 if systemctl list-unit-files | grep -qi "dragonfly"; then

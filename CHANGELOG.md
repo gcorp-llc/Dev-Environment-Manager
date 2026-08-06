@@ -2,7 +2,7 @@
 
 All notable changes to the Dev Environment Manager (DEM) will be documented in this file.
 
-## [1.0.0] - 2025-08-04
+## [v1.0.0]
 
 ### Added
 - **Unified Command Framework**: Introduced `dem.sh` controller supporting installation, configuration, verification, uninstallation, diagnostics (`doctor`), status, repair, cleanup, and backup/restore actions.

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify CLI Tools & Utilities"
 
 dem_require_command gh

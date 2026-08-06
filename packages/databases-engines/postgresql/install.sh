@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "PostgreSQL"
 
 # 1. Setup official signed PostgreSQL APT Repository

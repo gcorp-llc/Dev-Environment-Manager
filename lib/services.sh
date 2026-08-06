@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_service_start() {
 
     systemctl start "$1"

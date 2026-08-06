@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_profile_exists() {
 
     [[ -f "$DEM_PROFILE_DIR/$1.profile" ]]

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify DragonflyDB"
 
 # Verify CLI availability. Dragonfly is Redis-compatible, so redis-cli can be used. We also check for dragonfly binary.

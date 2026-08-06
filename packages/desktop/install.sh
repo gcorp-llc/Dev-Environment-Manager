@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Desktop - Installation"
 
 source "$DEM_PACKAGE_DIR/desktop/fonts/install.sh"

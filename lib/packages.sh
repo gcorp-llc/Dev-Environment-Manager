@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 dem_package_update() {
 
     apt update
