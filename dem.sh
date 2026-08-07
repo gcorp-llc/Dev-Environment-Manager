@@ -46,6 +46,10 @@ Usage
 
   ./dem.sh restore
 
+  ./dem.sh service [action] [service]
+
+  ./dem.sh profile [list|load <profile>]
+
   ./dem.sh version
 
   ./dem.sh help
@@ -176,6 +180,26 @@ run_restore() {
 
 }
 
+run_service() {
+
+    load_command service
+
+    shift
+
+    dem_command_service "$@"
+
+}
+
+run_profile() {
+
+    load_command profile
+
+    shift
+
+    dem_command_profile "$@"
+
+}
+
 run_version() {
 
     echo "${DEM_NAME} ${DEM_VERSION}"
@@ -263,6 +287,18 @@ main() {
         restore)
 
             run_restore
+
+            ;;
+
+        service)
+
+            run_service "$@"
+
+            ;;
+
+        profile)
+
+            run_profile "$@"
 
             ;;
 

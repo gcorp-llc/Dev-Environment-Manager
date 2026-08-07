@@ -10,8 +10,10 @@ dem_command_cleanup() {
     apt autoclean
     apt clean
 
-    rm -rf /tmp/*
-    rm -rf "$DEM_CACHE_DIR"/* 2>/dev/null
+    # Clean only if safe to do so
+    if [[ -d "${DEM_CACHE_DIR:-}" && -n "${DEM_CACHE_DIR:-}" ]]; then
+        rm -rf "${DEM_CACHE_DIR:?}"/* 2>/dev/null
+    fi
 
     dem_success "Cleanup completed."
 

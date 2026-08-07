@@ -2,8 +2,8 @@
 set -euo pipefail
 dem_title "Uninstall DragonflyDB"
 
-if systemctl list-unit-files | grep -qi "dragonfly"; then
-    SERVICE_NAME=$(systemctl list-unit-files | grep -oE "dragonfly[^. ]*" | head -n1)
+SERVICE_NAME=$(dem_service_find_by_pattern "dragonfly")
+if [[ -n "${SERVICE_NAME}" ]]; then
     dem_service_stop "$SERVICE_NAME" || true
     dem_service_disable "$SERVICE_NAME" || true
 fi

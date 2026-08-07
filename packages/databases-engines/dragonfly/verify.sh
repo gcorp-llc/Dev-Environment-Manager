@@ -10,8 +10,8 @@ else
 fi
 
 # Verify daemon
-if systemctl list-unit-files | grep -qi "dragonfly"; then
-    SERVICE_NAME=$(systemctl list-unit-files | grep -oE "dragonfly[^. ]*" | head -n1)
+SERVICE_NAME=$(dem_service_find_by_pattern "dragonfly")
+if [[ -n "${SERVICE_NAME}" ]]; then
     if dem_service_running "$SERVICE_NAME"; then
         dem_success "dragonfly service is running."
     else
