@@ -7,7 +7,7 @@ mkdir -p /etc/meilisearch
 chown -R meilisearch:meilisearch /etc/meilisearch
 
 # Enable and start meilisearch service (configure for development env)
-if systemctl list-unit-files | grep -qi "meilisearch"; then
+if dem_service_exists "meilisearch"; then
     dem_service_enable meilisearch || true
     dem_service_start meilisearch || true
 else
@@ -28,7 +28,7 @@ WantedBy=multi-user.target
 EOF
     mkdir -p /var/lib/meilisearch/data
     chown -R meilisearch:meilisearch /var/lib/meilisearch
-    systemctl daemon-reload
+    dem_service_daemon_reload
     dem_service_enable meilisearch || true
     dem_service_start meilisearch || true
 fi

@@ -4,12 +4,6 @@ dem_download() {
 
 }
 
-dem_download_exec() {
-
-    curl -fsSL "$1" | bash
-
-}
-
 dem_get_public_ip() {
 
     curl -fsSL https://ifconfig.me
