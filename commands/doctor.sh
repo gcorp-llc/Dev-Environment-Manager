@@ -43,14 +43,15 @@ dem_command_doctor() {
         errors=$((errors + 1))
     fi
 
-    # Optional commands checking
-    local optional_cmds=("git" "docker" "node" "php" "composer" "cargo" "go")
+    # Optional commands checking (git is required by core, and has been classified strictly under required commands)
+    # The absence of these optional development components does not prevent DEM's core operations.
+    local optional_cmds=("docker" "node" "php" "composer" "cargo" "go")
     for cmd in "${optional_cmds[@]}"; do
         if dem_command_exists "$cmd"; then
-            dem_success "$cmd client exists"
+            dem_success "Optional Package: $cmd client is installed"
             passes=$((passes + 1))
         else
-            dem_warning "$cmd client is not installed"
+            dem_warning "Optional Package: $cmd client is not installed (optional component)"
             warnings=$((warnings + 1))
         fi
     done
