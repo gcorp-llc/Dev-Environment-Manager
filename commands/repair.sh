@@ -69,12 +69,13 @@ EOF
     local crlf_count=0
     while IFS= read -r -d '' f; do
         if grep -q $'\r' "$f" 2>/dev/null; then
-            # Convert CRLF to LF safely
-            local temp_f
-            temp_f=$(mktemp)
-            tr -d '\r' < "$f" > "$temp_f"
-            cat "$temp_f" > "$f"
-            rm -f "$temp_f"
+            # Convert CRLF to LF safely using dos2unix or sed
+            if dem_command_exists dos2unix; then
+                dos2unix -q "$f"
+            else
+                # Use sed as a robust backup to remove CRLF line endings
+                sed -i 's/\r$//' "$f"
+            fi
             dem_info "Converted line endings to LF: $f"
             crlf_count=$((crlf_count + 1))
         fi
@@ -117,7 +118,7 @@ EOF
 
             # Detect original set mode (-Eeuo pipefail or -euo pipefail)
             local set_mode="set -euo pipefail"
-            if grep -q "set -Eeuo pipefail" "$temp_f"; then
+            if grep -q "^set -Eeuo pipefail" "$temp_f"; then
                 set_mode="set -Eeuo pipefail"
             fi
 
@@ -161,20 +162,46 @@ EOF
     # 5. Executable Permissions Repair
     dem_info "Repairing executable permissions..."
     local perm_count=0
+
+    # Ensure config.sh and lib/*.sh library scripts are explicitly non-executable on disk and in git index
+    for f in config.sh lib/*.sh; do
+        if [[ -f "$f" ]]; then
+            if [[ -x "$f" ]]; then
+                chmod -x "$f"
+                dem_info "Removed executable permission from library/config on disk: $f"
+                perm_count=$((perm_count + 1))
+            fi
+            if [[ -d ".git" ]]; then
+                git update-index --chmod=-x "$f" || true
+            fi
+        fi
+    done
+
+    # Ensure main entrypoint scripts and controller commands are explicitly executable
+    for f in dem.sh bootstrap.sh commands/*.sh; do
+        if [[ -f "$f" ]]; then
+            if [[ ! -x "$f" ]]; then
+                chmod +x "$f"
+                dem_info "Added executable permission to entrypoint/command script on disk: $f"
+                perm_count=$((perm_count + 1))
+            fi
+            if [[ -d ".git" ]]; then
+                git update-index --chmod=+x "$f" || true
+            fi
+        fi
+    done
+
+    # Handle remaining script files matching standard patterns
     while IFS= read -r -d '' f; do
         local rel_f="${f#./}"
         if [[ "$rel_f" == "config.sh" || "$rel_f" == "lib/"* ]]; then
-            # Library/config: should not be executable
-            if [[ -x "$f" ]]; then
-                chmod -x "$f"
-                if [[ -d ".git" ]]; then
-                    git update-index --chmod=-x "$f" || true
-                fi
-                dem_info "Removed executable permission from library/config: $rel_f"
-                perm_count=$((perm_count + 1))
-            fi
+            # Done explicitly above
+            continue
+        elif [[ "$rel_f" == "dem.sh" || "$rel_f" == "bootstrap.sh" || "$rel_f" == "commands/"* ]]; then
+            # Done explicitly above
+            continue
         else
-            # Executable scripts: should be executable (excluding .profile scripts)
+            # Executable scripts: should be executable (excluding .profile scripts as they are only sourced)
             if [[ "$rel_f" != "profiles/"* ]]; then
                 if [[ ! -x "$f" ]]; then
                     chmod +x "$f"
@@ -187,17 +214,6 @@ EOF
             fi
         fi
     done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
-
-    for rscript in dem.sh bootstrap.sh; do
-        if [[ -f "$rscript" && ! -x "$rscript" ]]; then
-            chmod +x "$rscript"
-            if [[ -d ".git" ]]; then
-                git update-index --chmod=+x "$rscript" || true
-            fi
-            dem_info "Added executable permission to script: $rscript"
-            perm_count=$((perm_count + 1))
-        fi
-    done
 
     if [[ $perm_count -gt 0 ]]; then
         dem_success "Repaired permissions on $perm_count script(s)."
