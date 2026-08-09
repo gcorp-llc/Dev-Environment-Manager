@@ -42,9 +42,10 @@ jobs:
           EOF
           docker build -t debian13-systemd .
 
-          # Start privileged container with real systemd
+          # Start privileged container with real systemd and cgroups v2 write access
           docker run --tmpfs /tmp --tmpfs /run --tmpfs /run/lock \
-            -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+            -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+            --cgroupns=host \
             --privileged -d \
             --name debian13-runtime \
             debian13-systemd \
