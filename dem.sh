@@ -32,6 +32,8 @@ Usage
 
   ./dem.sh doctor
 
+  ./dem.sh validate
+
   ./dem.sh status
 
   ./dem.sh update
@@ -121,6 +123,14 @@ run_doctor() {
     load_command doctor
 
     dem_command_doctor
+
+}
+
+run_validate() {
+
+    load_command validate
+
+    dem_command_validate
 
 }
 
@@ -245,6 +255,12 @@ main() {
         doctor)
 
             run_doctor
+
+            ;;
+
+        validate)
+
+            run_validate
 
             ;;
 
