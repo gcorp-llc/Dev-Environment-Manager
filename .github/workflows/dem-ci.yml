@@ -65,11 +65,11 @@ jobs:
         run: |
           docker exec -t debian13-runtime mkdir -p /app
           docker cp . debian13-runtime:/app
-          docker exec -t debian13-runtime chmod -R +x /app/dem.sh /app/bootstrap.sh /app/commands/
+          docker exec -w /app -t debian13-runtime chmod -R +x dem.sh bootstrap.sh commands/
 
       - name: Execute Bootstrap
         run: |
-          docker exec -t debian13-runtime /app/bootstrap.sh
+          docker exec -w /app -t debian13-runtime ./bootstrap.sh
 
       - name: Test Network Failure Safety Under Complete Network Isolation
         run: |
@@ -78,7 +78,7 @@ jobs:
 
           echo "==== ATTEMPT INSTALL UNDER ISOLATION ===="
           # The install command must exit non-zero and fail cleanly
-          if docker exec -t debian13-runtime /app/dem.sh install minimal; then
+          if docker exec -w /app -t debian13-runtime ./dem.sh install minimal; then
               echo "CRITICAL ERROR: DEM install silently succeeded or didn't exit non-zero under complete network isolation!"
               exit 1
           else
@@ -90,87 +90,87 @@ jobs:
 
           # Verify connection is restored
           sleep 2
-          docker exec -t debian13-runtime ping -c 1 -W 5 1.1.1.1
+          docker exec -w /app -t debian13-runtime ping -c 1 -W 5 1.1.1.1
 
       - name: Run Pre-Flight Diagnostics (Doctor & Validate)
         run: |
-          docker exec -t debian13-runtime /app/dem.sh doctor
-          docker exec -t debian13-runtime /app/dem.sh validate
+          docker exec -w /app -t debian13-runtime ./dem.sh doctor
+          docker exec -w /app -t debian13-runtime ./dem.sh validate
 
       - name: Run Profile Lifecycle - Minimal Profile
         env:
           DEM_ALLOW_UNSUPPORTED_SCYLLA: "true"
         run: |
           echo "==== INSTALL MINIMAL ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install minimal
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install minimal
 
           echo "==== VERIFY MINIMAL ===="
-          docker exec -t debian13-runtime /app/dem.sh verify minimal
+          docker exec -w /app -t debian13-runtime ./dem.sh verify minimal
 
           echo "==== DOCTOR MINIMAL ===="
-          docker exec -t debian13-runtime /app/dem.sh doctor
+          docker exec -w /app -t debian13-runtime ./dem.sh doctor
 
           echo "==== VALIDATE MINIMAL ===="
-          docker exec -t debian13-runtime /app/dem.sh validate
+          docker exec -w /app -t debian13-runtime ./dem.sh validate
 
           echo "==== IDEMPOTENCY (INSTALL MINIMAL AGAIN) ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install minimal
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install minimal
 
           echo "==== VERIFY AGAIN ===="
-          docker exec -t debian13-runtime /app/dem.sh verify minimal
+          docker exec -w /app -t debian13-runtime ./dem.sh verify minimal
 
           echo "==== UNINSTALL MINIMAL ===="
-          docker exec -t debian13-runtime /app/dem.sh uninstall minimal
+          docker exec -w /app -t debian13-runtime ./dem.sh uninstall minimal
 
           echo "==== REINSTALL MINIMAL ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install minimal
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install minimal
 
           echo "==== VERIFY FINAL ===="
-          docker exec -t debian13-runtime /app/dem.sh verify minimal
+          docker exec -w /app -t debian13-runtime ./dem.sh verify minimal
 
       - name: Run Profile Lifecycle - Server Profile
         env:
           DEM_ALLOW_UNSUPPORTED_SCYLLA: "true"
         run: |
           echo "==== INSTALL SERVER ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install server
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install server
 
           echo "==== VERIFY SERVER ===="
-          docker exec -t debian13-runtime /app/dem.sh verify server
+          docker exec -w /app -t debian13-runtime ./dem.sh verify server
 
           echo "==== DOCTOR SERVER ===="
-          docker exec -t debian13-runtime /app/dem.sh doctor
+          docker exec -w /app -t debian13-runtime ./dem.sh doctor
 
           echo "==== VALIDATE SERVER ===="
-          docker exec -t debian13-runtime /app/dem.sh validate
+          docker exec -w /app -t debian13-runtime ./dem.sh validate
 
           echo "==== IDEMPOTENCY (INSTALL SERVER AGAIN) ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install server
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install server
 
           echo "==== VERIFY AGAIN ===="
-          docker exec -t debian13-runtime /app/dem.sh verify server
+          docker exec -w /app -t debian13-runtime ./dem.sh verify server
 
           echo "==== UNINSTALL SERVER ===="
-          docker exec -t debian13-runtime /app/dem.sh uninstall server
+          docker exec -w /app -t debian13-runtime ./dem.sh uninstall server
 
           echo "==== REINSTALL SERVER ===="
-          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -t debian13-runtime /app/dem.sh install server
+          docker exec -e DEM_ALLOW_UNSUPPORTED_SCYLLA=true -w /app -t debian13-runtime ./dem.sh install server
 
           echo "==== VERIFY FINAL ===="
-          docker exec -t debian13-runtime /app/dem.sh verify server
+          docker exec -w /app -t debian13-runtime ./dem.sh verify server
 
       - name: Collect Diagnostics on Failure
         if: failure()
         run: |
           echo "==== RUNTIME ENVIRONMENT DOCTOR OUTPUT ===="
-          docker exec -t debian13-runtime /app/dem.sh doctor || true
+          docker exec -w /app -t debian13-runtime ./dem.sh doctor || true
           echo "==== SYSTEMD JOURNAL OUTPUT ===="
-          docker exec -t debian13-runtime journalctl -n 100 --no-pager || true
+          docker exec -w /app -t debian13-runtime journalctl -n 100 --no-pager || true
           echo "==== SYSTEMD SERVICE STATES ===="
-          docker exec -t debian13-runtime systemctl list-units --type=service --all || true
+          docker exec -w /app -t debian13-runtime systemctl list-units --type=service --all || true
           echo "==== APT CONFIGURATION ===="
-          docker exec -t debian13-runtime apt-config dump || true
-          docker exec -t debian13-runtime ls -la /etc/apt/sources.list.d/ || true
+          docker exec -w /app -t debian13-runtime apt-config dump || true
+          docker exec -w /app -t debian13-runtime ls -la /etc/apt/sources.list.d/ || true
 
   release-gate:
     name: Final Release Gate
