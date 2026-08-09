@@ -35,12 +35,19 @@ jobs:
           # Pull official trixie image
           docker pull debian:trixie-slim
 
+          # Build custom systemd and ping-enabled image
+          cat <<'EOF' > Dockerfile
+          FROM debian:trixie-slim
+          RUN apt-get update && apt-get install -y systemd systemd-sysv iputils-ping && apt-get clean
+          EOF
+          docker build -t debian13-systemd .
+
           # Start privileged container with real systemd
           docker run --tmpfs /tmp --tmpfs /run --tmpfs /run/lock \
             -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
             --privileged -d \
             --name debian13-runtime \
-            debian:trixie-slim \
+            debian13-systemd \
             /lib/systemd/systemd
 
           # Wait for systemd to initialize
