@@ -79,8 +79,8 @@ DEM comprises 12 architectural categories containing individual package modules 
 | **`development`** | `packages/development` | `jq`, `tree`, `less`, and system-wide `bash-completion` |
 | **`docker`** | `packages/docker` | `docker-ce`, `containerd.io`, `docker-compose-plugin` |
 | **`languages`** | `packages/languages` | Rust (`cargo`, `rustc`), Go runtime, Node.js (LTS), and PHP-CLI with common extensions |
-| **`databases`** | `packages/databases` | PostgreSQL Client (`psql`), MariaDB Client (`mariadb-client`), and SQLite3 (`sqlite3`) |
-| **`databases-engines`**| `packages/databases-engines`| PostgreSQL Server, ScyllaDB 5.4, DragonflyDB engine, and Meilisearch engine |
+| **`databases`** | `packages/databases` | MariaDB Client (`mariadb-client`), and SQLite3 (`sqlite3`) |
+| **`databases-engines`**| `packages/databases-engines`| ScyllaDB 5.4, DragonflyDB engine, Redpanda cluster, and Vespa search engine |
 | **`frameworks`** | `packages/frameworks` | Composer, WordPress CLI, and a lightweight React Native & Expo workflow (OpenJDK, Node LTS, yarn, pnpm, EAS CLI, Expo CLI, `adb`, `fastboot`) |
 | **`office`** | `packages/office` | LibreOffice Suite, Evince Document PDF Reader |
 | **`tools`** | `packages/tools` | `gh` (GitHub CLI), `kubectl`, Helm, Terraform, `htop`, `btop`, `ripgrep`, `fzf`, `bat`, `eza`, `fastfetch` |

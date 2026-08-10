@@ -42,12 +42,12 @@ The inventory below summarizes all available modules and submodules:
     *   `languages/node`: Node.js (LTS v20) runtime.
     *   `languages/php`: PHP CLI and common extensions.
     *   `languages/rust`: Rust toolchain (`rustc`, `cargo`).
-6.  **`databases`**: Command-line interface database clients (`psql`, `mariadb-client`, `sqlite3`).
+6.  **`databases`**: Command-line interface database clients (`mariadb-client`, `sqlite3`).
 7.  **`databases-engines`**:
     *   `databases-engines/dragonfly`: DragonflyDB caching engine.
-    *   `databases-engines/meilisearch`: Meilisearch search engine.
-    *   `databases-engines/postgresql`: PostgreSQL Server.
+    *   `databases-engines/redpanda`: Redpanda cluster engine.
     *   `databases-engines/scylladb`: ScyllaDB v5.4 engine.
+    *   `databases-engines/vespa`: Vespa search/indexing engine.
 8.  **`frameworks`**:
     *   `frameworks/laravel`: PHP Composer and Laravel CLI support.
     *   `frameworks/react-native`: Expo and React Native CLI support with OpenJDK, adb, and fastboot.
@@ -130,7 +130,7 @@ The external repositories defined inside modules are:
 *   **HashiCorp** (`apt.releases.hashicorp.com`)
 *   **Helm** (`baltocdn.com`)
 *   **GitHub CLI** (`cli.github.com`)
-*   **PostgreSQL** (`apt.postgresql.org`)
+*   **Redpanda** (`dl.redpanda.com`)
 *   **ScyllaDB** (`repositories.scylladb.com`)
 
 ---
@@ -140,9 +140,9 @@ The external repositories defined inside modules are:
 DEM configures, enables, starts, and verifies health for the following background systemd services:
 
 *   `docker.service` (Docker VM virtualizer daemon)
-*   `postgresql.service` (PostgreSQL DBMS server)
+*   `redpanda.service` (Redpanda cluster daemon)
 *   `scylla-server.service` (ScyllaDB database server)
-*   `meilisearch.service` (Meilisearch search engine)
+*   `vespa` (Vespa Search Engine container)
 *   `dragonfly.service` (DragonflyDB caching daemon)
 *   `prometheus-node-exporter.service` (Host metrics daemon)
 *   `ufw.service` (Host firewall)
@@ -178,7 +178,7 @@ Because the current execution sandbox environment runs Ubuntu, some validations 
 1.  **Debian trixie Suite Detection**: The host check in `doctor.sh` that validates Debian Trixie is a strict runtime requirement and must be verified on Debian 13 itself.
 2.  **APT Package Downloads**: Downloading package lists and packages from the Debian 13 APT repository must be performed on the actual platform.
 3.  **Active GPG Keyrings and Sources Configurations**: Writing the keyrings under `/etc/apt/keyrings/` and invoking `apt update` with `signed-by` attributes to download from external sources is validated in real-time.
-4.  **Systemd Service Daemons**: Active initialization of background services (`scylla-server`, `postgresql`, `meilisearch`, `dragonfly`, `fail2ban`) must be verified on a real systemd-enabled system.
+4.  **Systemd Service Daemons**: Active initialization of background services (`scylla-server`, `redpanda`, `dragonfly`, `fail2ban`, and containerized `vespa`) must be verified on a real systemd-enabled system.
 5.  **User/Group Shell Creation**: Dynamic creation of system users and groups via `getent` and useradd utilities.
 
 ---

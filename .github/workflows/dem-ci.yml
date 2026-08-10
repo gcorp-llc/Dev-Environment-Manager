@@ -38,7 +38,7 @@ jobs:
           # Build custom systemd and ping-enabled image
           cat <<'EOF' > Dockerfile
           FROM debian:trixie-slim
-          RUN apt-get update && apt-get install -y systemd systemd-sysv iputils-ping && apt-get clean
+          RUN apt-get update && apt-get install -y systemd systemd-sysv iputils-ping git lsof && apt-get clean
           EOF
           docker build -t debian13-systemd .
 
