@@ -22,10 +22,12 @@ dem_command_platform() {
             dem_check_cargo || true
             dem_check_node || true
             dem_check_docker || true
-            dem_check_gh || true
             ;;
         rust)
-            dem_check_cargo || dem_die "Rust/Cargo is required for platform rust validation"
+            if ! dem_check_cargo; then
+                dem_log_error "Rust/Cargo is required for platform rust validation"
+                return 1
+            fi
             cargo fmt --all -- --check
             cargo check --workspace --all-targets
             cargo clippy --workspace --all-targets -- -D warnings
@@ -34,10 +36,14 @@ dem_command_platform() {
         keyspaces)
             local platform_dir="${DEM_PLATFORM_DIR:-}"
             if [[ -z "$platform_dir" ]]; then
-                dem_die "Set DEM_PLATFORM_DIR to the Platform repository path"
+                dem_log_error "Set DEM_PLATFORM_DIR to the Platform repository path"
+                return 1
             fi
-            [[ -x "$platform_dir/scripts/validate-keyspace-ownership.sh" ]] || dem_die "Platform keyspace validator is missing or not executable"
-            "$platform_dir/scripts/validate-keyspace-ownership.sh"
+            if [[ ! -f "$platform_dir/scripts/validate-keyspace-ownership.sh" ]]; then
+                dem_log_error "Platform keyspace validator is missing"
+                return 1
+            fi
+            bash "$platform_dir/scripts/validate-keyspace-ownership.sh"
             ;;
         all)
             dem_command_platform doctor
@@ -46,7 +52,7 @@ dem_command_platform() {
             else
                 dem_warning "Rust/Cargo unavailable; skipped Rust validation"
             fi
-            if [[ -n "${DEM_PLATFORM_DIR:-}" ]] && [[ -x "${DEM_PLATFORM_DIR}/scripts/validate-keyspace-ownership.sh" ]]; then
+            if [[ -n "${DEM_PLATFORM_DIR:-}" ]] && [[ -f "${DEM_PLATFORM_DIR}/scripts/validate-keyspace-ownership.sh" ]]; then
                 dem_command_platform keyspaces
             else
                 dem_warning "DEM_PLATFORM_DIR not configured; skipped keyspace validation"
