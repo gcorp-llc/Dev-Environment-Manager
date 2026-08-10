@@ -1,0 +1,26 @@
+version: '3'
+services:
+  vespa:
+    image: vespaengine/vespa
+    container_name: vespa
+    hostname: vespa-container
+    privileged: true
+    ports:
+      - "19071:19071"
+      - "8081:8080"
+    environment:
+      - VESPA_CONFIGSERVER_JVMARGS=-Xms512m -Xmx512m
+      - VESPA_JVMARGS=-Xms1024m -Xmx1024m
+    volumes:
+      - vespa_var:/opt/vespa/var
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: redpanda-console
+    network_mode: "host"
+    environment:
+      - KAFKA_BROKERS=localhost:9092
+      - CONSOLE_LISTEN_PORT=8080
+
+volumes:
+  vespa_var:

@@ -52,8 +52,8 @@ DEM structures its modules into a strict 12-category architecture under the `pac
 * `development`: Common text/data/archive manipulation packages (`jq`, `tree`, `less`, `bash-completion`).
 * `docker`: Installs and configures Docker Engine with standard plugins.
 * `languages`: Compiler/runtime environments for modern languages (Node, Go, Rust, PHP).
-* `databases`: CLI clients for common databases (`psql`, `mariadb-client`, `sqlite3`, etc.).
-* `databases-engines`: Sourced database servers (PostgreSQL, ScyllaDB, DragonflyDB, Meilisearch).
+* `databases`: CLI clients for common databases (`mariadb-client`, `sqlite3`, etc.).
+* `databases-engines`: Sourced database servers (ScyllaDB, DragonflyDB, Redpanda, Vespa).
 * `frameworks`: Sourced framework engines and development environments (WP-CLI, Composer, React Native & Expo).
 * `office`: Productivity tools (`libreoffice`, `evince`).
 * `tools`: Production CLI utilities (`gh`, `kubectl`, `helm`, `terraform`, `eza`, `ripgrep`, etc.).
@@ -76,7 +76,7 @@ Every active module or sub-module folder MUST maintain exactly four scripts matc
    - Standardizes service management by calling `dem_service_enable` and `dem_service_start`.
 3. **`verify.sh`**:
    - Proactively verifies that binaries exist in the executable path (`PATH`).
-   - Asserts that ports are listening or health endpoints are responding (e.g. Meilisearch HTTP health checks).
+   - Asserts that ports are listening or health endpoints are responding (e.g. Vespa HTTP health checks).
    - Confirms systemd services are in a running state.
 4. **`uninstall.sh`**:
    - Purges configuration files and system paths.

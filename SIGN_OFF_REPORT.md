@@ -74,8 +74,8 @@ The system is organized around a strict 12-category architecture where every pac
 | **`development`** | Convenience utilities | Common JSON parsing (`jq`), file tree listings (`tree`), paginator (`less`), and system `bash-completion`. |
 | **`docker`** | Docker virtualization | Docker Engine (`docker-ce`), container runtime (`containerd`), and the CLI compose tool (`docker-compose-plugin`). |
 | **`languages`** | Dev compilers & runtimes | Node.js (LTS), Go runtime, PHP interpreter with CLI extensions, and Rust compiler (`cargo`, `rustc`). |
-| **`databases`** | CLI database clients | DB clients including PostgreSQL (`psql`), MariaDB/MySQL (`mariadb-client`), and SQLite (`sqlite3`). |
-| **`databases-engines`** | Decoupled database servers | PostgreSQL Server, ScyllaDB (5.4 engine), DragonflyDB, and Meilisearch engine. |
+| **`databases`** | CLI database clients | DB clients including MariaDB/MySQL (`mariadb-client`), and SQLite (`sqlite3`). |
+| **`databases-engines`** | Decoupled database servers | ScyllaDB (5.4 engine), DragonflyDB, Redpanda cluster, and Vespa search engine. |
 | **`frameworks`** | App development stacks | Composer (PHP package manager), WP-CLI (WordPress tool), React Native & Expo CLI support (OpenJDK, `adb`, `fastboot`). |
 | **`office`** | Office & Productivity | LibreOffice productivity suite, Evince document PDF reader. |
 | **`tools`** | Operations CLI toolsets | GitHub CLI (`gh`), `kubectl`, Helm, Terraform, `htop`, `btop`, `ripgrep`, `fzf`, `bat`, `eza`, `fastfetch`. |
@@ -147,7 +147,7 @@ To maintain high security, DEM uses modern signed-by keyrings in `/etc/apt/keyri
 *   **HashiCorp**: Registers the official HashiCorp release suite (`apt.releases.hashicorp.com`).
 *   **Helm**: Deploys the official Helm package repository (`baltocdn.com`).
 *   **GitHub CLI**: Installs the native GitHub CLI signed keyring (`cli.github.com`).
-*   **PostgreSQL**: Installs standard PostgreSQL production keyrings (`apt.postgresql.org`).
+*   **Redpanda**: Installs verified Redpanda cluster keyrings (`dl.redpanda.com`).
 *   **ScyllaDB**: Deploys verified ScyllaDB 5.4 engine keyrings (`repositories.scylladb.com`).
 
 ---
@@ -157,9 +157,9 @@ To maintain high security, DEM uses modern signed-by keyrings in `/etc/apt/keyri
 All service state lifecycles are controlled via custom wrappers in `lib/services.sh` rather than calling systemctl directly:
 
 *   `docker.service` (Docker container daemon)
-*   `postgresql.service` (PostgreSQL DBMS)
+*   `redpanda.service` (Redpanda cluster daemon)
 *   `scylla-server.service` (ScyllaDB DBMS node)
-*   `meilisearch.service` (Meilisearch search engine)
+*   `vespa` (Vespa Search Engine container)
 *   `dragonfly.service` (DragonflyDB caching engine)
 *   `prometheus-node-exporter.service` (Performance stats exporter)
 *   `ufw.service` (Uncomplicated firewall)

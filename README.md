@@ -99,8 +99,8 @@ All DEM scripts inside `packages/` belong to one of the strict architectural mod
 3. **`development`**: Developer convenience tools like `jq`, `tree`, `less`, and system-wide `bash-completion`.
 4. **`docker`**: Modern Docker Engine stack, including the `docker-ce`, `containerd`, and the modern `docker-compose-plugin`.
 5. **`languages`**: Compilers and runtimes for Node.js (LTS), Go, PHP, and Rust (`cargo`, `rustc`).
-6. **`databases`**: Common database client utilities (`psql`, `mariadb-client`, `redis-tools`, `sqlite3`).
-7. **`databases-engines`**: Fully decoupled production-grade database services including PostgreSQL, ScyllaDB, DragonflyDB, and Meilisearch.
+6. **`databases`**: Common database client utilities (`mariadb-client`, `redis-tools`, `sqlite3`).
+7. **`databases-engines`**: Fully decoupled production-grade database services including ScyllaDB, DragonflyDB, Redpanda, and Vespa.
 8. **`frameworks`**: Modern lightweight development stacks (Laravel Composer setups, WordPress CLI, and React Native/Expo supporting OpenJDK, adb, and fastboot).
 9. **`tools`**: Command line utilities (`gh`, `kubectl`, `helm`, `terraform`, `htop`, `btop`, `ripgrep`, `fzf`, `bat`, `eza`, `fastfetch`).
 10. **`desktop`**: VS Code installation, Fira Code / Hack Nerd fonts.

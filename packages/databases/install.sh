@@ -3,7 +3,6 @@ set -euo pipefail
 dem_title "Databases Clients"
 
 dem_package_install \
-    postgresql-client \
     mariadb-client \
     redis-tools \
     sqlite3
