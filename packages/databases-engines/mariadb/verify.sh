@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify MariaDB"
 
 dem_require_command mysql
 
-if command -v systemctl >/dev/null 2>&1; then
-    if ! systemctl is-active --quiet mariadb; then
+if dem_service_exists mariadb; then
+    if ! dem_service_running mariadb; then
         dem_error "MariaDB service is not running."
         exit 1
     fi

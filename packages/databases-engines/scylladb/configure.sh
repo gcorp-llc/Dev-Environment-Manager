@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 dem_title "Configure ScyllaDB"
 
 dem_require_root

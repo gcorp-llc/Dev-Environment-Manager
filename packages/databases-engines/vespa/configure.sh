@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 dem_title "Configure Vespa"
 
 dem_require_root

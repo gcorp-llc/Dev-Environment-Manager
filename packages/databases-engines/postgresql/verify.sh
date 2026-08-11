@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Verify PostgreSQL"
 
 dem_require_command psql
 
-if command -v systemctl >/dev/null 2>&1; then
-    if ! systemctl is-active --quiet postgresql; then
+if dem_service_exists postgresql; then
+    if ! dem_service_running postgresql; then
         dem_error "PostgreSQL service is not running."
         exit 1
     fi

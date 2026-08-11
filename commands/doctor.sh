@@ -274,6 +274,16 @@ dem_command_doctor() {
         warnings=$((warnings + 1))
     fi
 
+    # 8.1. ScyllaDB Debian 13 Fallback Check
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        source /etc/os-release
+    fi
+    if [[ "${VERSION_CODENAME:-}" == "trixie" && -f /etc/apt/sources.list.d/scylla.list ]]; then
+        dem_warning "ScyllaDB is running via Debian 12 (bookworm) packages on Debian 13 as an explicitly opted-in compatibility fallback. Not officially supported by ScyllaDB upstream as of this release."
+        warnings=$((warnings + 1))
+    fi
+
     # 9. Package Module Completeness Check (install, configure, verify, uninstall)
     local module_completeness_errors=0
     local module_errs=()
