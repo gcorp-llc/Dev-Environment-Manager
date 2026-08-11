@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 dem_title "Uninstall Core"
 
 dem_warning "Core contains shared Debian system dependencies."

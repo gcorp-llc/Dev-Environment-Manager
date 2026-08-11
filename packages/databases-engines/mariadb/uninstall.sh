@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-
 dem_title "Uninstall MariaDB"
 
-if command -v systemctl >/dev/null 2>&1; then
+if dem_service_exists mariadb; then
     dem_service_stop mariadb || true
     dem_service_disable mariadb || true
 fi

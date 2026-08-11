@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 dem_title "Uninstall DragonflyDB"
 
 dem_require_root

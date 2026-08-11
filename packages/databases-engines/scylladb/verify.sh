@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
 dem_title "Verify ScyllaDB"
 
 dem_require_root
@@ -28,4 +27,14 @@ if [[ ! -f /etc/apt/sources.list.d/scylla.list ]]; then
     dem_error "ScyllaDB APT repository configuration is missing."
 fi
 
-dem_success "ScyllaDB verification completed." 
+# Print compatibility fallback warning if running on Trixie and using bookworm/fallback packages
+if [[ -f /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    source /etc/os-release
+fi
+
+if [[ "${VERSION_CODENAME:-}" == "trixie" ]]; then
+    dem_warning "ScyllaDB is running via Debian 12 (bookworm) packages on Debian 13 as an explicitly opted-in compatibility fallback. Not officially supported by ScyllaDB upstream as of this release."
+fi
+
+dem_success "ScyllaDB verification completed."

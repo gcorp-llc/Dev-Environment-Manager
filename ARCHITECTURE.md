@@ -121,3 +121,10 @@ All background processes are registered as systemd units and controlled uniforml
 * `dem_service_status` -> `systemctl status "$1"`
 
 This ensures error control and consistent state logging across both server and workstation provisionings.
+
+---
+
+## 🔍 Search Platform Architecture
+
+* **Vespa**: Vespa is the primary search, indexing, and recommendation engine utilized across the DEM ecosystem. It is deployed as a managed container via Docker and Docker Compose to ensure isolation and performance tuning.
+* **Meilisearch Status**: Meilisearch was evaluated during early architecture exploration and has been superseded by Vespa as the primary search platform. It is not part of the DEM package set.
