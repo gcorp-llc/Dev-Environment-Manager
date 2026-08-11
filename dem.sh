@@ -52,6 +52,8 @@ Usage
 
   ./dem.sh profile [list|load <profile>]
 
+  ./dem.sh platform [doctor|rust|keyspaces|all]
+
   ./dem.sh version
 
   ./dem.sh help
@@ -210,6 +212,16 @@ run_profile() {
 
 }
 
+run_platform() {
+
+    load_command platform
+
+    shift
+
+    dem_command_platform "$@"
+
+}
+
 run_version() {
 
     echo "${DEM_NAME} ${DEM_VERSION}"
@@ -315,6 +327,12 @@ main() {
         profile)
 
             run_profile "$@"
+
+            ;;
+
+        platform)
+
+            run_platform "$@"
 
             ;;
 
