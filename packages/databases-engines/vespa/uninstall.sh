@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
-dem_title "Uninstall Vespa and Redpanda Console"
 
-if dem_command_exists docker; then
-    dem_info "Stopping and removing Vespa and Redpanda Console containers..."
-    docker compose -f "$(dirname "${BASH_SOURCE[0]}")/docker-compose.yml" down -v || true
+dem_title "Uninstall Vespa"
+
+dem_require_root
+dem_require_command docker
+
+if docker ps -a --format '{{.Names}}' | grep -qx "vespa"; then
+    docker rm -f vespa
 fi
 
-dem_success "Vespa and Redpanda Console uninstalled."
+docker image rm \
+    vespaengine/vespa \
+    2>/dev/null || true
+
+dem_success "Vespa uninstalled."

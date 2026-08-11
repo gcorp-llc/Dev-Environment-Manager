@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 dem_title "Configure DragonflyDB"
 
-# Enable and start dragonfly service if registered
-SERVICE_NAME=$(dem_service_find_by_pattern "dragonfly")
-if [[ -n "${SERVICE_NAME}" ]]; then
-    dem_service_enable "$SERVICE_NAME" || true
-    dem_service_start "$SERVICE_NAME" || true
+dem_require_root
+dem_require_command docker
+
+if docker ps -a --format '{{.Names}}' | grep -qx "dragonfly"; then
+    dem_info "DragonflyDB container already exists."
+else
+    docker run -d \
+        --name dragonfly \
+        --restart unless-stopped \
+        --network host \
+        --ulimit memlock=-1 \
+        docker.dragonflydb.io/dragonflydb/dragonfly:latest
 fi
 
 dem_success "DragonflyDB configured."

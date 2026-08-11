@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 dem_title "Verify ScyllaDB"
 
-# If ScyllaDB was skipped, verify should also pass/warn gracefully
-if [[ ! -f "/etc/apt/sources.list.d/scylla.list" ]]; then
-    dem_warning "ScyllaDB is not installed or was skipped (no repository found)."
-    dem_success "ScyllaDB verification skipped."
-    exit 0
-fi
+dem_require_root
 
-# Verify repository exists
-dem_require_file "/etc/apt/sources.list.d/scylla.list"
+dem_require_command scylla
+dem_require_command nodetool
 
-# Verify service is running or check nodetool health if installed
-if dem_command_exists nodetool; then
-    nodetool status || true
+if dem_command_exists cqlsh; then
+    dem_info "cqlsh is available."
 else
-    dem_info "nodetool command not available, checking scylla-server service state"
-    dem_service_running scylla-server || dem_warning "scylla-server is not running"
+    dem_warning "cqlsh is not installed."
 fi
 
-dem_success "ScyllaDB verification completed."
+if dem_service_running scylla-server; then
+    dem_success "ScyllaDB service is running."
+else
+    dem_warning "ScyllaDB service is installed but not currently running."
+fi
+
+if [[ ! -f /etc/apt/keyrings/scylladb.gpg ]]; then
+    dem_error "ScyllaDB APT keyring is missing."
+fi
+
+if [[ ! -f /etc/apt/sources.list.d/scylla.list ]]; then
+    dem_error "ScyllaDB APT repository configuration is missing."
+fi
+
+dem_success "ScyllaDB verification completed." 

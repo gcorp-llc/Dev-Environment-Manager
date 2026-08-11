@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 dem_title "Uninstall DragonflyDB"
 
-SERVICE_NAME=$(dem_service_find_by_pattern "dragonfly")
-if [[ -n "${SERVICE_NAME}" ]]; then
-    dem_service_stop "$SERVICE_NAME" || true
-    dem_service_disable "$SERVICE_NAME" || true
+dem_require_root
+dem_require_command docker
+
+if docker ps -a --format '{{.Names}}' | grep -qx "dragonfly"; then
+    docker rm -f dragonfly
 fi
 
-dem_package_remove dragonfly
+docker image rm \
+    docker.dragonflydb.io/dragonflydb/dragonfly:latest \
+    2>/dev/null || true
 
 dem_success "DragonflyDB uninstalled."

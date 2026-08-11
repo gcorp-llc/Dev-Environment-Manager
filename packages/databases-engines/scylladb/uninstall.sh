@@ -1,19 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 dem_title "Uninstall ScyllaDB"
 
-if [[ ! -f "/etc/apt/sources.list.d/scylla.list" ]]; then
-    dem_info "ScyllaDB repository not found. Skipping uninstall."
-    exit 0
+dem_require_root
+
+if dem_service_running scylla-server; then
+    dem_service_stop scylla-server
 fi
 
-dem_service_stop scylla-server || true
-dem_service_disable scylla-server || true
+if dem_service_exists scylla-server; then
+    dem_service_disable scylla-server || true
+fi
 
-dem_package_remove scylla-server
+dem_package_remove scylla
 
-# Remove repository configuration
 rm -f /etc/apt/sources.list.d/scylla.list
-rm -f /etc/apt/keyrings/scylla.gpg
+rm -f /etc/apt/keyrings/scylladb.gpg
+
+dem_package_update
 
 dem_success "ScyllaDB uninstalled."
