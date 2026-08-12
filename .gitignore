@@ -1,17 +1,47 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
 # Logs
-logs/*
+logs/
+*.log
 
 # Cache
-cache/*
+cache/
+.cache/
+.turbo/
 
-# Temp
-tmp/*
+# Temporary
+tmp/
+temp/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+.next/
+out/
+.expo/
+
+# Coverage
+coverage/
+
+# Archives
+*.zip
+*.tar
+*.gz
 
 # Backup
 *.bak
 
 # Swap
 *.swp
+*.swo
 
 # macOS
 .DS_Store
@@ -24,18 +54,8 @@ Desktop.ini
 .vscode/
 .idea/
 
-# Shell
-*.log
+# PNPM
+.pnpm-store/
 
-# Environment
-.env
-.env.local
-
-# Build
-dist/
-build/
-
-# Archives
-*.zip
-*.tar
-*.gz
+# TypeScript
+*.tsbuildinfo
