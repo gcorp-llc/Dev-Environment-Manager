@@ -1,117 +1,53 @@
 'use client';
 
 import React from 'react';
-import { FileText, Cpu, Server, ShieldCheck, Layers, Terminal, CheckCircle2 } from 'lucide-react';
-import { CATEGORIES } from '@/lib/dem-data';
+import { BookOpen, CheckCircle2, ShieldAlert, FileCode2, Terminal, Layers, Cpu, Server } from 'lucide-react';
 
 export default function DocsView() {
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto text-slate-200">
       {/* Header */}
-      <div className="border-b border-[#30363d] pb-4">
-        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <FileText className="h-5 w-5 text-cyan-400" /> System Architecture Specifications
-        </h2>
-        <p className="text-xs text-slate-400">
-          Technical specifications, Debian 13 (Trixie) system requirements, GPG keyring policies, and 4-step Bash lifecycle rules.
+      <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6 space-y-2">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-bold text-slate-100">DEM Architectural Specifications</h2>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed max-w-3xl">
+          Dev Environment Manager (DEM) is a modular, Bash-based environment provisioning framework targeting Debian 13 (Trixie). Every package module implements a strict 4-script lifecycle standard.
         </p>
       </div>
 
-      {/* 4-Step Lifecycle Specs */}
-      <div className="glass-panel rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-bold font-mono text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-          <Terminal className="h-4 w-4" /> 4-Step Module Execution Lifecycle
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-lg bg-[#0d1117] border border-[#30363d] space-y-2">
-            <div className="text-xs font-mono font-bold text-emerald-400">1. install.sh</div>
-            <p className="text-xs text-slate-300">
-              Adds official APT repository mirrors to <code className="text-emerald-300">/etc/apt/sources.list.d/</code>, imports GPG keyrings, and executes non-interactive APT installation.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0d1117] border border-[#30363d] space-y-2">
-            <div className="text-xs font-mono font-bold text-cyan-400">2. configure.sh</div>
-            <p className="text-xs text-slate-300">
-              Applies system configs, configures environment variables, system limits in <code className="text-cyan-300">/etc/security/limits.conf</code>, and creates necessary symlinks.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0d1117] border border-[#30363d] space-y-2">
-            <div className="text-xs font-mono font-bold text-purple-400">3. systemd enablement</div>
-            <p className="text-xs text-slate-300">
-              Enables background daemons via <code className="text-purple-300">systemctl enable --now serviceName</code> and verifies active state IPC via systemd D-Bus interface.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-lg bg-[#0d1117] border border-[#30363d] space-y-2">
-            <div className="text-xs font-mono font-bold text-amber-400">4. verify.sh</div>
-            <p className="text-xs text-slate-300">
-              Executes binary PATH checks via <code className="text-amber-300">which binary</code>, tests command line versions, and confirms exit status code 0.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Target OS & Hardening Guidelines */}
+      {/* Grid Rules */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass-panel rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <Cpu className="h-4 w-4 text-cyan-400" /> Target OS Environment
-          </h3>
-          <ul className="space-y-2 text-xs text-slate-300 font-mono">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>OS Release: Debian GNU/Linux 13 (Trixie)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>Kernel: Linux 6.12+ LTS (x86_64 / amd64)</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>Init System: Systemd v256+ with D-Bus IPC support</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-              <span>CPU Instructions: AVX2 + FMA extension support</span>
-            </li>
+        {/* Rule 1 */}
+        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-2 text-emerald-400">
+            <FileCode2 className="w-4 h-4" />
+            <h3 className="text-sm font-bold text-slate-100">The 4-Script Module Standard</h3>
+          </div>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Every sub-module under <code className="text-emerald-400 font-mono">packages/&lt;category&gt;/&lt;module&gt;/</code> MUST implement exactly 4 lifecycle scripts:
+          </p>
+          <ul className="text-xs space-y-2 text-slate-300 font-mono bg-[#0d1117] p-3 rounded-lg border border-[#30363d]">
+            <li><strong className="text-emerald-400">install.sh</strong>: Downloads packages and imports GPG keyrings.</li>
+            <li><strong className="text-amber-400">configure.sh</strong>: Sets config files, users, and systemd units.</li>
+            <li><strong className="text-cyan-400">verify.sh</strong>: Asserts binaries exist and endpoints respond.</li>
+            <li><strong className="text-rose-400">uninstall.sh</strong>: Completely purges packages, keys, and configs.</li>
           </ul>
         </div>
 
-        <div className="glass-panel rounded-xl p-5 space-y-3">
-          <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-purple-400" /> Security & GPG Keyring Policy
-          </h3>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            In compliance with modern Debian security standards, all third-party APT repositories (Docker CE, NodeSource, VS Code) store de-armored GPG public keys exclusively in:
-          </p>
-          <div className="p-2 rounded bg-[#0d1117] border border-[#30363d] text-xs font-mono text-purple-300">
-            /etc/apt/keyrings/[repository].gpg
+        {/* Rule 2 */}
+        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-2 text-amber-400">
+            <ShieldAlert className="w-4 h-4" />
+            <h3 className="text-sm font-bold text-slate-100">APT Signed-By GPG Security</h3>
           </div>
-          <p className="text-xs text-slate-400">
-            Legacy <code className="text-slate-200">apt-key add</code> is completely deprecated and avoided.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            DEM completely avoids deprecated <code className="text-rose-400 font-mono">apt-key</code> and global <code className="text-rose-400 font-mono">trusted.gpg</code> keys. Third-party GPG keyrings are saved under <code className="text-emerald-400 font-mono">/etc/apt/keyrings/</code> with explicit <code className="text-emerald-400 font-mono">signed-by</code> parameters in sources list files.
           </p>
-        </div>
-      </div>
-
-      {/* 12 Categories Reference */}
-      <div className="glass-panel rounded-xl p-5 space-y-4">
-        <h3 className="text-sm font-bold font-mono text-slate-100 uppercase tracking-wider">
-          12 Architectural Category Matrix Reference
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {CATEGORIES.map((cat) => (
-            <div key={cat.id} className="p-3 rounded-lg bg-[#0d1117] border border-[#30363d] space-y-1">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-emerald-400">
-                <span>{cat.name}</span>
-                <span className="text-[10px] text-slate-500 uppercase">{cat.id}</span>
-              </div>
-              <p className="text-xs text-slate-400">{cat.description}</p>
-            </div>
-          ))}
+          <div className="bg-[#0d1117] p-3 rounded-lg border border-[#30363d] text-[11px] font-mono text-slate-300">
+            deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian trixie stable
+          </div>
         </div>
       </div>
     </div>

@@ -1,62 +1,56 @@
 'use client';
 
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  Boxes, 
-  Code2, 
-  Stethoscope, 
-  Terminal, 
-  Archive, 
-  FileText,
-  HardDrive,
-  Cpu
-} from 'lucide-react';
-
-export type ViewType = 'dashboard' | 'profiles' | 'scripts' | 'doctor' | 'terminal' | 'backup' | 'docs';
+import { LayoutDashboard, Layers, Code2, Stethoscope, Terminal, Archive, BookOpen } from 'lucide-react';
 
 interface SidebarProps {
-  activeView: ViewType;
-  onViewChange: (view: ViewType) => void;
-  storageStatus?: string;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  installedCount: number;
+  modulesCount: number;
 }
 
-export default function Sidebar({ activeView, onViewChange, storageStatus = 'Synced' }: SidebarProps) {
-  const navItems: { id: ViewType; label: string; icon: React.ElementType; badge?: string }[] = [
-    { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
-    { id: 'profiles', label: 'Profiles & Modules', icon: Boxes, badge: '12 Cats' },
-    { id: 'scripts', label: 'Script Studio', icon: Code2 },
-    { id: 'doctor', label: 'System Doctor', icon: Stethoscope },
-    { id: 'terminal', label: 'DEM CLI Terminal', icon: Terminal },
-    { id: 'backup', label: 'Backup & Archive', icon: Archive },
-    { id: 'docs', label: 'Architecture Specs', icon: FileText },
+export default function Sidebar({ activeTab, setActiveTab, installedCount, modulesCount }: SidebarProps) {
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard, badge: null },
+    { id: 'profiles', label: 'Profiles & Modules', icon: Layers, badge: `${installedCount}/${modulesCount} active` },
+    { id: 'scripts', label: 'Script Studio', icon: Code2, badge: '4-Phase' },
+    { id: 'doctor', label: 'System Doctor', icon: Stethoscope, badge: '8 checks' },
+    { id: 'terminal', label: 'DEM Shell Terminal', icon: Terminal, badge: './dem.sh' },
+    { id: 'backup', label: 'Backup & Profiles', icon: Archive, badge: null },
+    { id: 'docs', label: 'Architecture Specs', icon: BookOpen, badge: 'Docs' },
   ];
 
   return (
-    <aside className="w-full lg:w-64 border-r border-[#30363d] bg-[#161b22]/90 backdrop-blur-md flex flex-col justify-between p-3 shrink-0">
-      <div className="space-y-1">
-        <div className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400">
-          Navigation Suite
+    <aside className="w-64 border-r border-[#30363d] bg-[#0d1117] flex flex-col shrink-0 min-h-[calc(100vh-57px)]">
+      <div className="p-4 space-y-1">
+        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
+          Management Console
         </div>
+        
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeView === item.id;
+          const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold'
-                  : 'text-slate-300 hover:bg-[#1c2128] hover:text-slate-100 border border-transparent'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold shadow-inner'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-[#161b22]'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`h-4 w-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
               </div>
               {item.badge && (
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#30363d] text-slate-300">
+                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                  isActive
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : 'bg-[#21262d] text-slate-400 border border-[#30363d]'
+                }`}>
                   {item.badge}
                 </span>
               )}
@@ -65,20 +59,20 @@ export default function Sidebar({ activeView, onViewChange, storageStatus = 'Syn
         })}
       </div>
 
-      {/* Bottom Live System Indicator */}
-      <div className="mt-4 pt-3 border-t border-[#30363d] space-y-2">
-        <div className="rounded-lg bg-[#0d1117] p-2.5 border border-[#30363d] space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1">
-              <Cpu className="h-3 w-3 text-cyan-400" /> Target OS
-            </span>
-            <span className="text-cyan-400 font-semibold">Debian 13</span>
+      {/* System info badge bottom */}
+      <div className="mt-auto p-4 border-t border-[#30363d] bg-[#161b22]/50">
+        <div className="bg-[#0d1117] border border-[#30363d] rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Target System:</span>
+            <span className="font-mono text-emerald-400 text-[11px] font-bold">Debian 13</span>
           </div>
-          <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-slate-400 flex items-center gap-1">
-              <HardDrive className="h-3 w-3 text-emerald-400" /> Storage State
-            </span>
-            <span className="text-emerald-400 font-semibold">{storageStatus}</span>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Architecture:</span>
+            <span className="font-mono text-slate-300 text-[11px]">x86_64</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400">Persistence:</span>
+            <span className="font-mono text-cyan-400 text-[11px]">localStorage</span>
           </div>
         </div>
       </div>

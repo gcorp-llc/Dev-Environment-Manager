@@ -1,159 +1,149 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import { 
-  Terminal, 
-  X, 
-  Copy, 
-  Download, 
-  Square, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Loader2 
-} from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Terminal, X, CheckCircle2, AlertTriangle, Loader2, Copy, Download, Square, Check } from 'lucide-react';
 
 interface ConsoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
+  title: string;
   logs: string[];
   isRunning: boolean;
-  onStop?: () => void;
+  isSuccess?: boolean;
+  onCancel?: () => void;
 }
 
-export default function ConsoleModal({
-  isOpen,
-  onClose,
-  title = 'DEM Shell CLI Execution Stream',
-  logs,
-  isRunning,
-  onStop,
-}: ConsoleModalProps) {
-  const logEndRef = useRef<HTMLDivElement | null>(null);
+export default function ConsoleModal({ isOpen, onClose, title, logs, isRunning, isSuccess = true, onCancel }: ConsoleModalProps) {
+  const [copied, setCopied] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [logs]);
 
   if (!isOpen) return null;
 
-  const handleCopyLogs = () => {
+  const handleCopy = () => {
     navigator.clipboard.writeText(logs.join('\n'));
-    alert('Execution logs copied to clipboard.');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadLogs = () => {
+  const handleDownload = () => {
     const blob = new Blob([logs.join('\n')], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dem-execution-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.log`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dem-exec-${Date.now()}.log`;
+    link.click();
     URL.revokeObjectURL(url);
-  };
-
-  const colorizeLogLine = (line: string) => {
-    if (line.includes('[SUCCESS]')) {
-      return <span className="text-emerald-400 font-semibold">{line}</span>;
-    }
-    if (line.includes('[EXEC]') || line.includes('[APT]')) {
-      return <span className="text-cyan-400 font-mono">{line}</span>;
-    }
-    if (line.includes('[GPG]') || line.includes('[SERVICE]')) {
-      return <span className="text-purple-400 font-mono">{line}</span>;
-    }
-    if (line.includes('[STEP]') || line.includes('[BATCH]')) {
-      return <span className="text-amber-400 font-bold">{line}</span>;
-    }
-    if (line.includes('[WARN]')) {
-      return <span className="text-amber-300 font-semibold">{line}</span>;
-    }
-    if (line.includes('[ERROR]') || line.includes('[FAIL]')) {
-      return <span className="text-rose-400 font-bold">{line}</span>;
-    }
-    return <span className="text-slate-300 font-mono">{line}</span>;
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="w-full max-w-4xl rounded-xl border border-[#30363d] bg-[#090d13] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[#30363d] bg-[#161b22] px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              <Terminal className="h-4 w-4" />
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#30363d] bg-[#0d1117]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Terminal className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-100">{title}</h3>
-              <p className="text-[11px] text-slate-400 font-mono">Debian 13 (Trixie) System Execution Host</p>
+              <h3 className="font-bold text-sm text-slate-100">{title}</h3>
+              <p className="text-xs text-slate-400">DEM Execution Stream • Real-time Output Log</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {isRunning ? (
-              <span className="flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-mono text-amber-400 border border-amber-500/30">
-                <Loader2 className="h-3 w-3 animate-spin" /> RUNNING...
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-mono text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="h-3 w-3" /> EXIT 0 (OK)
-              </span>
-            )}
-
             <button
-              onClick={handleCopyLogs}
-              title="Copy log to clipboard"
-              className="rounded-lg bg-[#21262d] p-1.5 text-slate-300 border border-[#30363d] hover:bg-[#30363d] transition"
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs text-slate-300 bg-[#21262d] hover:bg-[#30363d] px-3 py-1.5 rounded-xl border border-[#30363d] transition-colors"
             >
-              <Copy className="h-4 w-4" />
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+              {copied ? 'Copied' : 'Copy'}
             </button>
 
             <button
-              onClick={handleDownloadLogs}
-              title="Download log file (.log)"
-              className="rounded-lg bg-[#21262d] p-1.5 text-slate-300 border border-[#30363d] hover:bg-[#30363d] transition"
+              onClick={handleDownload}
+              title="Download Log Report"
+              className="p-1.5 text-slate-300 bg-[#21262d] hover:bg-[#30363d] rounded-xl border border-[#30363d] transition-colors"
             >
-              <Download className="h-4 w-4" />
+              <Download className="w-4 h-4 text-slate-400" />
             </button>
-
-            {isRunning && onStop && (
-              <button
-                onClick={onStop}
-                title="Cancel execution"
-                className="flex items-center gap-1 rounded-lg bg-rose-500/20 px-2.5 py-1 text-xs font-medium text-rose-400 border border-rose-500/40 hover:bg-rose-500/30 transition"
-              >
-                <Square className="h-3.5 w-3.5 fill-rose-400" /> Stop
-              </button>
-            )}
 
             <button
               onClick={onClose}
-              disabled={isRunning}
-              className="rounded-lg bg-[#21262d] p-1.5 text-slate-400 hover:text-slate-100 disabled:opacity-40 transition"
+              className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-[#21262d] rounded-xl transition-colors"
             >
-              <X className="h-4 w-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Terminal Output Body */}
-        <div className="flex-1 p-4 overflow-y-auto terminal-bg text-xs font-mono leading-relaxed space-y-1">
-          {logs.length === 0 ? (
-            <div className="text-slate-400 italic">Initializing execution stream...</div>
-          ) : (
-            logs.map((line, idx) => (
-              <div key={idx} className="whitespace-pre-wrap break-words">
-                {colorizeLogLine(line)}
-              </div>
-            ))
+        {/* Console output area */}
+        <div ref={scrollRef} className="p-5 bg-[#090d13] font-mono text-xs text-slate-300 overflow-y-auto flex-1 space-y-1.5 min-h-[300px]">
+          {logs.map((line, idx) => (
+            <div key={idx} className="flex items-start gap-2.5 leading-relaxed">
+              <span className="text-slate-600 select-none font-mono text-[11px] w-6 text-right">{idx + 1}</span>
+              <span className="text-slate-600 select-none">›</span>
+              <span className={
+                line.includes('[SUCCESS]') || line.includes('[OK]') || line.includes('- PASS')
+                  ? 'text-emerald-400 font-semibold'
+                  : line.includes('[WARN]') || line.includes('[CHECK]')
+                  ? 'text-amber-300'
+                  : line.includes('[STEP]') || line.includes('[DEM') || line.includes('[EXEC]')
+                  ? 'text-cyan-400 font-bold'
+                  : 'text-slate-300'
+              }>
+                {line}
+              </span>
+            </div>
+          ))}
+
+          {isRunning && (
+            <div className="flex items-center gap-2 text-cyan-400 pt-3 text-xs font-semibold">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Executing step script on Debian 13 environment...</span>
+            </div>
           )}
-          <div ref={logEndRef} />
         </div>
 
-        {/* Console Footer */}
-        <div className="border-t border-[#30363d] bg-[#161b22] px-4 py-2 flex items-center justify-between text-xs text-slate-400 font-mono">
-          <span>Target: Debian 13 x86_64</span>
-          <span>Logs: {logs.length} lines</span>
+        {/* Footer status bar */}
+        <div className="px-6 py-3.5 border-t border-[#30363d] bg-[#0d1117] flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            {isRunning ? (
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 text-cyan-400 font-medium">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Process in progress
+                </span>
+                {onCancel && (
+                  <button
+                    onClick={onCancel}
+                    className="flex items-center gap-1 text-rose-400 hover:text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 px-2.5 py-1 rounded-lg border border-rose-800 text-[11px] font-semibold transition-colors"
+                  >
+                    <Square className="w-3 h-3 fill-current" /> Stop Execution
+                  </button>
+                )}
+              </div>
+            ) : isSuccess ? (
+              <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <CheckCircle2 className="w-4 h-4" /> Process finished with exit code 0
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-rose-400 font-bold">
+                <AlertTriangle className="w-4 h-4" /> Process stopped or completed with errors
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-[#21262d] hover:bg-[#30363d] text-slate-200 rounded-xl border border-[#30363d] font-semibold text-xs transition-colors"
+          >
+            Close Stream
+          </button>
         </div>
       </div>
     </div>

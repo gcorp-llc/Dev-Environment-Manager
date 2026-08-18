@@ -1,172 +1,179 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Profile, CATEGORIES } from '@/lib/dem-data';
-import { X, Save, Boxes } from 'lucide-react';
+import { Profile, PackageModule } from '@/lib/dem-data';
+import { X, Save, Layers, Check, Box } from 'lucide-react';
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profile: Profile | null;
+  profileToEdit: Profile | null;
+  modules: PackageModule[];
   onSave: (profile: Profile) => void;
 }
 
-export default function EditProfileModal({
-  isOpen,
-  onClose,
-  profile,
-  onSave,
-}: EditProfileModalProps) {
+export default function EditProfileModal({ isOpen, onClose, profileToEdit, modules, onSave }: EditProfileModalProps) {
   const [formData, setFormData] = useState<Partial<Profile>>({
     id: '',
     name: '',
     description: '',
-    target: 'Debian 13 Cloud VPS',
+    target: '',
     modules: [],
     isInstalled: false,
   });
 
   useEffect(() => {
-    if (profile) {
-      setFormData(profile);
+    if (profileToEdit) {
+      setFormData({
+        ...profileToEdit,
+        modules: [...profileToEdit.modules]
+      });
     } else {
       setFormData({
-        id: `prof-custom-${Date.now().toString().slice(-4)}`,
-        name: '',
-        description: '',
-        target: 'Debian 13 Cloud VPS',
-        modules: ['core', 'system', 'development'],
+        id: `profile-${Date.now().toString().slice(-4)}`,
+        name: 'New Custom Profile',
+        description: 'Custom profile tailored for specific deployment nodes.',
+        target: 'Debian 13 (Trixie) Node',
+        modules: ['core', 'system', 'docker'],
         isInstalled: false,
       });
     }
-  }, [profile, isOpen]);
+  }, [profileToEdit, isOpen]);
 
   if (!isOpen) return null;
 
-  const toggleCategory = (catId: string) => {
-    const current = formData.modules || [];
-    if (current.includes(catId)) {
-      setFormData({ ...formData, modules: current.filter((c) => c !== catId) });
-    } else {
-      setFormData({ ...formData, modules: [...current, catId] });
-    }
+  const toggleModuleInProfile = (modId: string) => {
+    setFormData(prev => {
+      const current = prev.modules || [];
+      const updated = current.includes(modId)
+        ? current.filter(m => m !== modId)
+        : [...current, modId];
+      return { ...prev, modules: updated };
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalProfile: Profile = {
-      id: formData.id || `prof-${Date.now()}`,
-      name: formData.name || 'Custom Profile Stack',
-      description: formData.description || '',
-      target: formData.target || 'Debian 13 Cloud VPS',
-      modules: formData.modules || [],
-      isInstalled: Boolean(formData.isInstalled),
-    };
-    onSave(finalProfile);
+    if (!formData.name || !formData.id) return;
+    onSave(formData as Profile);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="w-full max-w-2xl rounded-xl border border-[#30363d] bg-[#161b22] shadow-2xl overflow-hidden flex flex-col my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#30363d] bg-[#0d1117] px-6 py-4">
+        <div className="px-6 py-4 border-b border-[#30363d] bg-[#0d1117] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              <Boxes className="h-4 w-4" />
+            <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+              <Box className="w-5 h-5" />
             </div>
-            <h3 className="text-base font-bold text-slate-100">
-              {profile ? `Edit Profile: ${profile.name}` : 'Create Environment Profile Stack'}
-            </h3>
+            <div>
+              <h3 className="text-base font-bold text-slate-100">
+                {profileToEdit ? `Edit Profile: ${profileToEdit.name}` : 'Create Custom Environment Profile'}
+              </h3>
+              <p className="text-xs text-slate-400">Define targeted package module stacks and node metadata</p>
+            </div>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:text-slate-100 transition">
-            <X className="h-5 w-5" />
+
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-slate-100 hover:bg-[#21262d] rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-mono font-medium text-slate-400 mb-1">Profile Name</label>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">Profile Identifier (ID)</label>
               <input
                 type="text"
-                value={formData.name || ''}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Backend Microservice VPS"
-                className="w-full rounded-lg bg-[#0d1117] px-3 py-2 text-xs text-slate-200 border border-[#30363d] focus:border-emerald-500/60 focus:outline-none"
+                value={formData.id}
+                onChange={e => setFormData({ ...formData, id: e.target.value })}
                 required
+                className="bg-[#0d1117] border border-[#30363d] text-slate-100 font-mono text-xs rounded-lg px-3 py-2 w-full focus:outline-none focus:border-cyan-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-mono font-medium text-slate-400 mb-1">OS Target Platform</label>
+              <label className="text-xs font-semibold text-slate-300 block mb-1">Profile Display Name</label>
               <input
                 type="text"
-                value={formData.target || ''}
-                onChange={(e) => setFormData({ ...formData, target: e.target.value })}
-                placeholder="e.g. Debian 13 Cloud VPS (x86_64)"
-                className="w-full rounded-lg bg-[#0d1117] px-3 py-2 text-xs text-slate-200 border border-[#30363d] focus:border-emerald-500/60 focus:outline-none"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 required
+                className="bg-[#0d1117] border border-[#30363d] text-slate-100 text-xs rounded-lg px-3 py-2 w-full focus:outline-none focus:border-cyan-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-mono font-medium text-slate-400 mb-1">Description</label>
-            <textarea
-              rows={2}
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Target workflow and software stack summary..."
-              className="w-full rounded-lg bg-[#0d1117] px-3 py-2 text-xs text-slate-200 border border-[#30363d] focus:border-emerald-500/60 focus:outline-none"
+            <label className="text-xs font-semibold text-slate-300 block mb-1">Target Infrastructure Description</label>
+            <input
+              type="text"
+              value={formData.target}
+              onChange={e => setFormData({ ...formData, target: e.target.value })}
+              placeholder="e.g. Debian 13 Cloud VPS / K8s Worker"
+              className="bg-[#0d1117] border border-[#30363d] text-slate-100 text-xs rounded-lg px-3 py-2 w-full focus:outline-none focus:border-cyan-500"
             />
           </div>
 
-          {/* Categories Selector */}
           <div>
-            <label className="block text-xs font-mono font-medium text-slate-400 mb-2">Included Module Categories</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-[#0d1117] rounded-lg border border-[#30363d]">
-              {CATEGORIES.map((cat) => {
-                const isSelected = (formData.modules || []).includes(cat.id);
+            <label className="text-xs font-semibold text-slate-300 block mb-1">Profile Overview Description</label>
+            <textarea
+              value={formData.description}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+              rows={2}
+              className="bg-[#0d1117] border border-[#30363d] text-slate-100 text-xs rounded-lg p-3 w-full focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          {/* Included Modules Checklist */}
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-2">
+              Select Included Package Modules ({formData.modules?.length || 0} selected)
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1 border border-[#30363d] bg-[#0d1117] rounded-xl">
+              {modules.map(mod => {
+                const isSelected = formData.modules?.includes(mod.id);
                 return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => toggleCategory(cat.id)}
-                    className={`flex items-center gap-2 p-2 rounded text-xs font-mono text-left transition ${
+                  <div
+                    key={mod.id}
+                    onClick={() => toggleModuleInProfile(mod.id)}
+                    className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all flex items-center justify-between ${
                       isSelected
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                        : 'bg-[#161b22] text-slate-400 border border-[#30363d] hover:bg-[#1c2128]'
+                        ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-200'
+                        : 'bg-[#161b22] border-[#30363d] text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      readOnly
-                      className="rounded text-emerald-500 bg-[#0d1117] border-[#30363d]"
-                    />
-                    <span className="truncate">{cat.name}</span>
-                  </button>
+                    <div>
+                      <div className="font-semibold text-xs text-slate-200">{mod.name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">Category: {mod.category}</div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-cyan-400 shrink-0" />}
+                  </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#30363d]">
+          <div className="pt-4 border-t border-[#30363d] flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-[#21262d] text-xs font-medium text-slate-300 border border-[#30363d] hover:bg-[#30363d] transition"
+              className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] text-slate-300 rounded-xl text-xs font-medium border border-[#30363d] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-500 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition glow-emerald"
+              className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-cyan-950/40 transition-all"
             >
-              <Save className="h-4 w-4" /> Save Profile Stack
+              <Save className="w-4 h-4" /> Save Profile
             </button>
           </div>
         </form>

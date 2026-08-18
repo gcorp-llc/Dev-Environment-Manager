@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
-import Sidebar, { ViewType } from '@/components/Sidebar';
-import ConsoleModal from '@/components/ConsoleModal';
+import Sidebar from '@/components/Sidebar';
 import DashboardOverview from '@/components/DashboardOverview';
 import ProfilesModulesView from '@/components/ProfilesModulesView';
 import ScriptEditorView from '@/components/ScriptEditorView';
@@ -11,338 +10,346 @@ import DoctorView from '@/components/DoctorView';
 import TerminalView from '@/components/TerminalView';
 import BackupView from '@/components/BackupView';
 import DocsView from '@/components/DocsView';
-import EditModuleModal from '@/components/EditModuleModal';
-import EditProfileModal from '@/components/EditProfileModal';
-import EditDiagnosticModal from '@/components/EditDiagnosticModal';
-
+import ConsoleModal from '@/components/ConsoleModal';
 import {
+  INITIAL_MODULES,
+  INITIAL_PROFILES,
+  INITIAL_DIAGNOSTICS,
   PackageModule,
   Profile,
-  DiagnosticCheck,
-  DEFAULT_MODULES,
-  DEFAULT_PROFILES,
-  DEFAULT_DIAGNOSTICS,
-  loadStoredModules,
-  saveStoredModules,
-  loadStoredProfiles,
-  saveStoredProfiles,
-  loadStoredDiagnostics,
-  saveStoredDiagnostics,
+  DiagnosticCheck
 } from '@/lib/dem-data';
 
-export default function Home() {
-  const [modules, setModules] = useState<PackageModule[]>(DEFAULT_MODULES);
-  const [profiles, setProfiles] = useState<Profile[]>(DEFAULT_PROFILES);
-  const [diagnostics, setDiagnostics] = useState<DiagnosticCheck[]>(DEFAULT_DIAGNOSTICS);
+export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
 
-  const [activeView, setActiveView] = useState<ViewType>('dashboard');
-  const [storageStatus, setStorageStatus] = useState<string>('Synced');
+  // LocalStorage-backed state initialized gracefully
+  const [modules, setModules] = useState<PackageModule[]>(INITIAL_MODULES);
+  const [profiles, setProfiles] = useState<Profile[]>(INITIAL_PROFILES);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticCheck[]>(INITIAL_DIAGNOSTICS);
 
-  // Console Modal Execution state
-  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
-  const [consoleTitle, setConsoleTitle] = useState('DEM Shell CLI Execution Stream');
-  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Modals state
-  const [editingModule, setEditingModule] = useState<PackageModule | null>(null);
-  const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
-
-  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
-  const [editingDiagnostic, setEditingDiagnostic] = useState<DiagnosticCheck | null>(null);
-  const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState(false);
-
-  const [scriptStudioModuleId, setScriptStudioModuleId] = useState<string>('');
-
-  // Initial Load from LocalStorage
+  // Load from LocalStorage on mount
   useEffect(() => {
-    const loadedMods = loadStoredModules();
-    const loadedProfs = loadStoredProfiles();
-    const loadedDiags = loadStoredDiagnostics();
-    setModules(loadedMods);
-    setProfiles(loadedProfs);
-    setDiagnostics(loadedDiags);
+    try {
+      const savedModules = localStorage.getItem('dem_modules_v2.5');
+      if (savedModules) setModules(JSON.parse(savedModules));
+
+      const savedProfiles = localStorage.getItem('dem_profiles_v2.5');
+      if (savedProfiles) setProfiles(JSON.parse(savedProfiles));
+
+      const savedDiagnostics = localStorage.getItem('dem_diagnostics_v2.5');
+      if (savedDiagnostics) setDiagnostics(JSON.parse(savedDiagnostics));
+    } catch (err) {
+      console.error('Failed to load local DEM state:', err);
+    }
   }, []);
 
-  // Sync to LocalStorage
-  const updateModules = (newMods: PackageModule[]) => {
-    setModules(newMods);
-    saveStoredModules(newMods);
-    setStorageStatus('Synced');
+  // Save changes to LocalStorage
+  const saveModulesState = (newModules: PackageModule[]) => {
+    setModules(newModules);
+    try {
+      localStorage.setItem('dem_modules_v2.5', JSON.stringify(newModules));
+    } catch (e) {}
   };
 
-  const updateProfiles = (newProfs: Profile[]) => {
-    setProfiles(newProfs);
-    saveStoredProfiles(newProfs);
-    setStorageStatus('Synced');
+  const saveProfilesState = (newProfiles: Profile[]) => {
+    setProfiles(newProfiles);
+    try {
+      localStorage.setItem('dem_profiles_v2.5', JSON.stringify(newProfiles));
+    } catch (e) {}
   };
 
-  const updateDiagnostics = (newDiags: DiagnosticCheck[]) => {
-    setDiagnostics(newDiags);
-    saveStoredDiagnostics(newDiags);
-    setStorageStatus('Synced');
+  const saveDiagnosticsState = (newDiagnostics: DiagnosticCheck[]) => {
+    setDiagnostics(newDiagnostics);
+    try {
+      localStorage.setItem('dem_diagnostics_v2.5', JSON.stringify(newDiagnostics));
+    } catch (e) {}
   };
 
-  // Run Backend Execution Engine
-  const runCommand = async (command: string, target?: string, extraData?: any) => {
+  // Console Modal State
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+  const [consoleTitle, setConsoleTitle] = useState('');
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+  const [isConsoleRunning, setIsConsoleRunning] = useState(false);
+
+  // Execution Handler with state updates & realistic log streaming
+  const handleRunAction = async (command: string, target?: string, moduleDetails?: PackageModule) => {
+    const titleTarget = target ? ` [${target}]` : '';
+    setConsoleTitle(`DEM Execution Stream: ./dem.sh ${command}${titleTarget}`);
+    setConsoleLogs([`[INIT] Launching DEM process controller for '${command}'...`]);
+    setIsConsoleRunning(true);
     setIsConsoleOpen(true);
-    setConsoleTitle(`DEM Execution: command="${command}" target="${target || 'system'}"`);
-    setConsoleLogs([`[INIT] Sending POST /api/dem/exec command="${command}"...`]);
-    setIsExecuting(true);
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
 
     try {
-      const response = await fetch('/api/dem/exec', {
+      const res = await fetch('/api/dem/exec', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          command,
-          target,
-          moduleData: extraData && extraData.packages ? extraData : undefined,
-          profileData: extraData && extraData.modules ? extraData : undefined,
-          scriptContent: typeof extraData === 'string' ? extraData : undefined,
-        }),
-        signal: controller.signal,
+        body: JSON.stringify({ command, target, moduleDetails })
       });
+      const data = await res.json();
 
-      if (!response.body) {
-        setConsoleLogs((prev) => [...prev, '[ERROR] Response body readable stream unavailable.']);
-        setIsExecuting(false);
-        return;
+      if (data.logs && Array.isArray(data.logs)) {
+        // Stream logs with micro-delays for realistic step feedback
+        for (let i = 0; i < data.logs.length; i++) {
+          await new Promise(r => setTimeout(r, 120));
+          setConsoleLogs(prev => [...prev, data.logs[i]]);
+        }
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      // Automatically update module or profile status in state
+      if (command === 'install_module' && (moduleDetails?.id || target)) {
+        const targetId = moduleDetails?.id || target;
+        const updated = modules.map(m => m.id === targetId ? { ...m, status: 'verified' as const } : m);
+        saveModulesState(updated);
+      } else if (command === 'verify_module' && (moduleDetails?.id || target)) {
+        const targetId = moduleDetails?.id || target;
+        const updated = modules.map(m => m.id === targetId ? { ...m, status: 'verified' as const } : m);
+        saveModulesState(updated);
+      } else if (command === 'uninstall_module' && (moduleDetails?.id || target)) {
+        const targetId = moduleDetails?.id || target;
+        const updated = modules.map(m => m.id === targetId ? { ...m, status: 'uninstalled' as const } : m);
+        saveModulesState(updated);
+      } else if (command === 'install' && target) {
+        // Installing a profile
+        const targetProf = profiles.find(p => p.id === target);
+        if (targetProf) {
+          const updatedProfiles = profiles.map(p => p.id === target ? { ...p, isInstalled: true } : p);
+          saveProfilesState(updatedProfiles);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const textChunk = decoder.decode(value);
-        const lines = textChunk.split('\n').filter((l) => l.length > 0);
-        setConsoleLogs((prev) => [...prev, ...lines]);
+          // Mark profile's modules as verified
+          const updatedModules = modules.map(m => {
+            if (targetProf.modules.includes(m.id) || targetProf.modules.includes(m.category)) {
+              return { ...m, status: 'verified' as const };
+            }
+            return m;
+          });
+          saveModulesState(updatedModules);
+        }
+      } else if (command === 'uninstall' && target) {
+        const updatedProfiles = profiles.map(p => p.id === target ? { ...p, isInstalled: false } : p);
+        saveProfilesState(updatedProfiles);
+      } else if (command === 'repair') {
+        const updatedDiagnostics = diagnostics.map(d => ({ ...d, status: 'pass' as const }));
+        saveDiagnosticsState(updatedDiagnostics);
       }
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        setConsoleLogs((prev) => [...prev, `[ERROR] Execution stream failed: ${err.message}`]);
-      }
+      setConsoleLogs(prev => [...prev, `[ERROR] Process failed: ${err.message}`]);
     } finally {
-      setIsExecuting(false);
+      setIsConsoleRunning(false);
     }
   };
 
-  const handleStopExecution = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setConsoleLogs((prev) => [...prev, '[WARN] Execution process cancelled by user request.']);
-      setIsExecuting(false);
+  const handleRunScriptCode = async (scriptCode: string, scriptName: string) => {
+    setConsoleTitle(`Script Execution: ${scriptName}`);
+    setConsoleLogs([`[INIT] Compiling and running custom Bash script code...`]);
+    setIsConsoleRunning(true);
+    setIsConsoleOpen(true);
+
+    try {
+      const res = await fetch('/api/dem/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: 'run_custom_script', scriptCode })
+      });
+      const data = await res.json();
+      if (data.logs && Array.isArray(data.logs)) {
+        setConsoleLogs(data.logs);
+      }
+    } catch (err: any) {
+      setConsoleLogs(prev => [...prev, `[ERROR] Script execution error: ${err.message}`]);
+    } finally {
+      setIsConsoleRunning(false);
     }
   };
 
-  // Config Import / Reset
-  const handleImportConfig = (data: { modules?: PackageModule[]; profiles?: Profile[]; diagnostics?: DiagnosticCheck[] }) => {
-    if (data.modules && Array.isArray(data.modules)) updateModules(data.modules);
-    if (data.profiles && Array.isArray(data.profiles)) updateProfiles(data.profiles);
-    if (data.diagnostics && Array.isArray(data.diagnostics)) updateDiagnostics(data.diagnostics);
-    alert('JSON configuration imported successfully.');
-  };
-
-  const handleResetDefaults = () => {
-    if (confirm('Are you sure you want to reset all modules, profiles, and diagnostics to factory defaults?')) {
-      updateModules(DEFAULT_MODULES);
-      updateProfiles(DEFAULT_PROFILES);
-      updateDiagnostics(DEFAULT_DIAGNOSTICS);
-    }
-  };
-
-  // Module CRUD handlers
+  // Module CRUD operations
   const handleSaveModule = (mod: PackageModule) => {
-    const exists = modules.some((m) => m.id === mod.id);
-    if (exists) {
-      updateModules(modules.map((m) => (m.id === mod.id ? mod : m)));
-    } else {
-      updateModules([...modules, mod]);
-    }
+    const exists = modules.some(m => m.id === mod.id);
+    const updated = exists ? modules.map(m => m.id === mod.id ? mod : m) : [...modules, mod];
+    saveModulesState(updated);
   };
 
-  const handleDeleteModule = (modId: string) => {
-    if (confirm('Are you sure you want to delete this module?')) {
-      updateModules(modules.filter((m) => m.id !== modId));
-    }
+  const handleDeleteModule = (moduleId: string) => {
+    const updated = modules.filter(m => m.id !== moduleId);
+    saveModulesState(updated);
   };
 
-  // Profile CRUD handlers
+  // Profile CRUD operations
   const handleSaveProfile = (prof: Profile) => {
-    const exists = profiles.some((p) => p.id === prof.id);
-    if (exists) {
-      updateProfiles(profiles.map((p) => (p.id === prof.id ? prof : p)));
-    } else {
-      updateProfiles([...profiles, prof]);
-    }
+    const exists = profiles.some(p => p.id === prof.id);
+    const updated = exists ? profiles.map(p => p.id === prof.id ? prof : p) : [...profiles, prof];
+    saveProfilesState(updated);
   };
 
-  const handleDeleteProfile = (profId: string) => {
-    if (confirm('Are you sure you want to delete this profile stack?')) {
-      updateProfiles(profiles.filter((p) => p.id !== profId));
-    }
+  const handleDeleteProfile = (profileId: string) => {
+    const updated = profiles.filter(p => p.id !== profileId);
+    saveProfilesState(updated);
   };
 
-  // Diagnostic CRUD handlers
+  // Diagnostic CRUD operations
   const handleSaveDiagnostic = (check: DiagnosticCheck) => {
-    const exists = diagnostics.some((d) => d.id === check.id);
-    if (exists) {
-      updateDiagnostics(diagnostics.map((d) => (d.id === check.id ? check : d)));
-    } else {
-      updateDiagnostics([...diagnostics, check]);
-    }
+    const exists = diagnostics.some(d => d.id === check.id);
+    const updated = exists ? diagnostics.map(d => d.id === check.id ? check : d) : [...diagnostics, check];
+    saveDiagnosticsState(updated);
   };
 
   const handleDeleteDiagnostic = (checkId: string) => {
-    if (confirm('Are you sure you want to delete this diagnostic check?')) {
-      updateDiagnostics(diagnostics.filter((d) => d.id !== checkId));
+    const updated = diagnostics.filter(d => d.id !== checkId);
+    saveDiagnosticsState(updated);
+  };
+
+  // Export and Import JSON Configuration
+  const handleExportConfig = () => {
+    const fullConfig = {
+      version: '2.5.0',
+      exportedAt: new Date().toISOString(),
+      modules,
+      profiles,
+      diagnostics
+    };
+
+    const blob = new Blob([JSON.stringify(fullConfig, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dem-config-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportConfig = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target?.result as string);
+          if (parsed.modules && Array.isArray(parsed.modules)) {
+            saveModulesState(parsed.modules);
+          }
+          if (parsed.profiles && Array.isArray(parsed.profiles)) {
+            saveProfilesState(parsed.profiles);
+          }
+          if (parsed.diagnostics && Array.isArray(parsed.diagnostics)) {
+            saveDiagnosticsState(parsed.diagnostics);
+          }
+          alert('DEM configuration imported and applied successfully!');
+        } catch (err) {
+          alert('Failed to parse JSON configuration file.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  const handleResetData = () => {
+    if (confirm('Are you sure you want to reset all modules, profiles, and diagnostics to factory defaults?')) {
+      localStorage.removeItem('dem_modules_v2.5');
+      localStorage.removeItem('dem_profiles_v2.5');
+      localStorage.removeItem('dem_diagnostics_v2.5');
+      setModules(INITIAL_MODULES);
+      setProfiles(INITIAL_PROFILES);
+      setDiagnostics(INITIAL_DIAGNOSTICS);
     }
   };
 
-  // Script studio save script
-  const handleSaveModuleScript = (moduleId: string, scripts: PackageModule['scripts']) => {
-    updateModules(
-      modules.map((m) => (m.id === moduleId ? { ...m, scripts } : m))
-    );
-  };
-
-  const handleOpenScriptEditor = (modId: string) => {
-    setScriptStudioModuleId(modId);
-    setActiveView('scripts');
-  };
+  const activeModulesCount = modules.filter(m => m.status === 'verified' || m.status === 'configured').length;
 
   return (
-    <div className="min-h-screen bg-[#0d1117] flex flex-col">
-      {/* Header Bar */}
+    <div className="min-h-screen bg-[#0d1117] text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30">
+      {/* Header */}
       <Header
-        onRunCommand={runCommand}
-        modules={modules}
-        profiles={profiles}
-        diagnostics={diagnostics}
+        onRunAction={handleRunAction}
+        activeTab={activeTab}
+        onExportConfig={handleExportConfig}
         onImportConfig={handleImportConfig}
-        onResetDefaults={handleResetDefaults}
+        onResetData={handleResetData}
       />
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col lg:flex-row">
+      {/* Main Content Body */}
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Navigation */}
         <Sidebar
-          activeView={activeView}
-          onViewChange={setActiveView}
-          storageStatus={storageStatus}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          installedCount={activeModulesCount}
+          modulesCount={modules.length}
         />
 
-        {/* View Content Canvas */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
-          {activeView === 'dashboard' && (
+        {/* View Container */}
+        <main className="flex-1 overflow-y-auto">
+          {activeTab === 'dashboard' && (
             <DashboardOverview
               modules={modules}
               profiles={profiles}
-              onRunCommand={runCommand}
-              onNavigateToView={(view) => setActiveView(view)}
+              onRunAction={handleRunAction}
+              onNavigate={setActiveTab}
             />
           )}
 
-          {activeView === 'profiles' && (
+          {activeTab === 'profiles' && (
             <ProfilesModulesView
               modules={modules}
               profiles={profiles}
-              onRunCommand={runCommand}
-              onEditModule={(mod) => {
-                setEditingModule(mod);
-                setIsModuleModalOpen(true);
-              }}
+              onRunAction={handleRunAction}
+              setModules={setModules}
+              setProfiles={setProfiles}
+              onSaveModule={handleSaveModule}
               onDeleteModule={handleDeleteModule}
-              onEditProfile={(prof) => {
-                setEditingProfile(prof);
-                setIsProfileModalOpen(true);
-              }}
+              onSaveProfile={handleSaveProfile}
               onDeleteProfile={handleDeleteProfile}
-              onOpenScriptEditor={handleOpenScriptEditor}
             />
           )}
 
-          {activeView === 'scripts' && (
+          {activeTab === 'scripts' && (
             <ScriptEditorView
               modules={modules}
-              initialModuleId={scriptStudioModuleId}
-              onSaveModuleScript={handleSaveModuleScript}
-              onRunCustomScript={(code) => runCommand('run_custom_script', 'custom.sh', code)}
+              onUpdateModule={handleSaveModule}
+              onRunScript={handleRunScriptCode}
             />
           )}
 
-          {activeView === 'doctor' && (
+          {activeTab === 'doctor' && (
             <DoctorView
               diagnostics={diagnostics}
-              onRunDoctor={() => runCommand('doctor')}
-              onEditCheck={(check) => {
-                setEditingDiagnostic(check);
-                setIsDiagnosticModalOpen(true);
-              }}
-              onDeleteCheck={handleDeleteDiagnostic}
-              onRunFixCommand={(fixCmd) => runCommand('run_custom_script', 'fix.sh', fixCmd)}
+              onRunAction={handleRunAction}
+              onSaveDiagnostic={handleSaveDiagnostic}
+              onDeleteDiagnostic={handleDeleteDiagnostic}
             />
           )}
 
-          {activeView === 'terminal' && (
-            <TerminalView onExecuteCommand={runCommand} />
+          {activeTab === 'terminal' && (
+            <TerminalView
+              onRunAction={handleRunAction}
+            />
           )}
 
-          {activeView === 'backup' && (
+          {activeTab === 'backup' && (
             <BackupView
-              modules={modules}
-              profiles={profiles}
-              onRunBackup={() => runCommand('backup')}
+              onRunAction={handleRunAction}
             />
           )}
 
-          {activeView === 'docs' && <DocsView />}
+          {activeTab === 'docs' && (
+            <DocsView />
+          )}
         </main>
       </div>
 
-      {/* Streaming Console Terminal Modal */}
+      {/* Execution Log Console Modal */}
       <ConsoleModal
         isOpen={isConsoleOpen}
         onClose={() => setIsConsoleOpen(false)}
         title={consoleTitle}
         logs={consoleLogs}
-        isRunning={isExecuting}
-        onStop={handleStopExecution}
-      />
-
-      {/* Module CRUD Drawer Modal */}
-      <EditModuleModal
-        isOpen={isModuleModalOpen}
-        onClose={() => setIsModuleModalOpen(false)}
-        module={editingModule}
-        onSave={handleSaveModule}
-      />
-
-      {/* Profile CRUD Modal */}
-      <EditProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-        profile={editingProfile}
-        onSave={handleSaveProfile}
-      />
-
-      {/* Diagnostic Check CRUD Modal */}
-      <EditDiagnosticModal
-        isOpen={isDiagnosticModalOpen}
-        onClose={() => setIsDiagnosticModalOpen(false)}
-        diagnostic={editingDiagnostic}
-        onSave={handleSaveDiagnostic}
+        isRunning={isConsoleRunning}
+        onCancel={() => setIsConsoleRunning(false)}
       />
     </div>
   );

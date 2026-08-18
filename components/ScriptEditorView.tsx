@@ -1,206 +1,209 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PackageModule } from '@/lib/dem-data';
-import { 
-  Code2, 
-  Terminal, 
-  Play, 
-  Copy, 
-  RotateCcw, 
-  Save, 
-  CheckCircle2, 
-  FileCode,
-  Layers
-} from 'lucide-react';
+import { Code2, Play, Save, Terminal, FileCode, CheckCircle2, RotateCcw, Copy, Check } from 'lucide-react';
 
 interface ScriptEditorViewProps {
   modules: PackageModule[];
-  initialModuleId?: string;
-  onSaveModuleScript: (moduleId: string, scripts: PackageModule['scripts']) => void;
-  onRunCustomScript: (script: string) => void;
+  onUpdateModule: (updatedModule: PackageModule) => void;
+  onRunScript: (scriptCode: string, scriptName: string) => void;
 }
 
-export default function ScriptEditorView({
-  modules,
-  initialModuleId,
-  onSaveModuleScript,
-  onRunCustomScript,
-}: ScriptEditorViewProps) {
-  const [selectedModuleId, setSelectedModuleId] = useState<string>(
-    initialModuleId || modules[0]?.id || ''
-  );
-  const [activeTab, setActiveTab] = useState<'install' | 'configure' | 'verify' | 'uninstall'>('install');
+export default function ScriptEditorView({ modules, onUpdateModule, onRunScript }: ScriptEditorViewProps) {
+  const [selectedModuleId, setSelectedModuleId] = useState<string>(modules[0]?.id || 'core');
+  const [activePhase, setActivePhase] = useState<'install' | 'configure' | 'verify' | 'uninstall'>('install');
+  
+  const currentModule = modules.find(m => m.id === selectedModuleId) || modules[0];
+  
+  const defaultScriptMap = {
+    install: currentModule?.scripts?.install || `#!/usr/bin/env bash\n# Install script for ${currentModule?.name}\nset -euo pipefail\napt-get update\napt-get install -y ${currentModule?.packages?.join(' ') || ''}`,
+    configure: currentModule?.scripts?.configure || `#!/usr/bin/env bash\n# Configure script for ${currentModule?.name}\necho "Applying configuration..."`,
+    verify: currentModule?.scripts?.verify || `#!/usr/bin/env bash\n# Verification test script\ncommand -v ${currentModule?.packages?.[0] || 'git'}`,
+    uninstall: currentModule?.scripts?.uninstall || `#!/usr/bin/env bash\n# Uninstallation script\napt-get purge -y ${currentModule?.packages?.join(' ') || ''}`
+  };
 
-  const selectedModule = modules.find((m) => m.id === selectedModuleId) || modules[0];
+  const [code, setCode] = useState<string>(defaultScriptMap[activePhase]);
+  const [copied, setCopied] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const [scripts, setScripts] = useState<PackageModule['scripts']>({
-    install: '',
-    configure: '',
-    verify: '',
-    uninstall: '',
-  });
-
-  useEffect(() => {
-    if (selectedModule) {
-      setScripts(
-        selectedModule.scripts || {
-          install: '#!/usr/bin/env bash\nset -euo pipefail\necho "Installing package..."',
-          configure: '#!/usr/bin/env bash\necho "Configuring package..."',
-          verify: '#!/usr/bin/env bash\nwhich binary',
-          uninstall: '#!/usr/bin/env bash\necho "Uninstalling package..."',
-        }
-      );
+  const handleModuleChange = (modId: string) => {
+    setSelectedModuleId(modId);
+    const mod = modules.find(m => m.id === modId);
+    if (mod) {
+      const script = mod.scripts?.[activePhase] || `#!/usr/bin/env bash\n# Script for ${mod.name}\nset -euo pipefail`;
+      setCode(script);
     }
-  }, [selectedModuleId, modules]);
+  };
 
-  const currentCode = scripts[activeTab] || '';
-
-  const handleCodeChange = (newCode: string) => {
-    setScripts((prev) => ({
-      ...prev,
-      [activeTab]: newCode,
-    }));
+  const handlePhaseChange = (phase: 'install' | 'configure' | 'verify' | 'uninstall') => {
+    setActivePhase(phase);
+    if (currentModule) {
+      const script = currentModule.scripts?.[phase] || defaultScriptMap[phase];
+      setCode(script);
+    }
   };
 
   const handleSave = () => {
-    if (!selectedModule) return;
-    onSaveModuleScript(selectedModule.id, scripts);
-    alert(`Saved updated scripts for module: ${selectedModule.name}`);
-  };
-
-  const handleReset = () => {
-    if (selectedModule) {
-      setScripts(selectedModule.scripts || {});
-    }
+    if (!currentModule) return;
+    const updatedScripts = {
+      ...(currentModule.scripts || {}),
+      [activePhase]: code
+    };
+    const updatedModule: PackageModule = {
+      ...currentModule,
+      scripts: updatedScripts
+    };
+    onUpdateModule(updatedModule);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 2000);
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(currentCode);
-    alert('Bash script copied to clipboard.');
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const lineCount = currentCode.split('\n').length;
+  const handleReset = () => {
+    setCode(defaultScriptMap[activePhase]);
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#30363d] pb-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Code2 className="h-5 w-5 text-emerald-400" /> Interactive Bash Script Studio
-          </h2>
-          <p className="text-xs text-slate-400">
-            Inspect, edit, test, and execute 4-step Bash lifecycle scripts (`install.sh`, `configure.sh`, `verify.sh`, `uninstall.sh`).
-          </p>
+    <div className="space-[#161b22] space-y-6">
+      {/* Top Banner */}
+      <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
+            <Code2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+              Interactive Bash Script Studio
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                Debian 13 Native
+              </span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              Inspect, modify, and test run individual Bash scripts for any module in real-time.
+            </p>
+          </div>
         </div>
 
+        {/* Action Controls */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 rounded-lg bg-[#21262d] px-3 py-2 text-xs font-medium text-slate-300 border border-[#30363d] hover:bg-[#30363d] transition"
+            className="px-3.5 py-2 bg-[#21262d] hover:bg-[#30363d] text-slate-200 border border-[#30363d] text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <Copy className="h-3.5 w-3.5" /> Copy Code
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Copied' : 'Copy Code'}
           </button>
+
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 rounded-lg bg-[#21262d] px-3 py-2 text-xs font-medium text-slate-300 border border-[#30363d] hover:bg-[#30363d] transition"
+            className="px-3.5 py-2 bg-[#21262d] hover:bg-[#30363d] text-slate-200 border border-[#30363d] text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
           >
-            <RotateCcw className="h-3.5 w-3.5" /> Reset
+            <RotateCcw className="w-4 h-4" /> Reset
           </button>
+
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 rounded-lg bg-[#21262d] px-3 py-2 text-xs font-semibold text-emerald-400 border border-emerald-500/40 hover:bg-[#30363d] transition"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-950/30 transition-all"
           >
-            <Save className="h-3.5 w-3.5" /> Save Script
+            {savedSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {savedSuccess ? 'Saved!' : 'Save Script'}
           </button>
+
           <button
-            onClick={() => onRunCustomScript(currentCode)}
-            className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition glow-emerald"
+            onClick={() => onRunScript(code, `${currentModule?.id}_${activePhase}.sh`)}
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold rounded-xl flex items-center gap-2 shadow-lg shadow-cyan-950/30 transition-all"
           >
-            <Play className="h-4 w-4 fill-slate-950" /> Execute Script
+            <Play className="w-4 h-4 fill-current" /> Execute Script
           </button>
         </div>
       </div>
 
-      {/* Main Studio Grid */}
+      {/* Main Studio Editor Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Left Sidebar Module Selector */}
-        <div className="glass-panel rounded-xl p-4 space-y-3">
-          <div className="text-xs font-mono font-bold uppercase text-slate-400 flex items-center gap-1.5">
-            <Layers className="h-3.5 w-3.5 text-emerald-400" /> Module Registry ({modules.length})
-          </div>
+        {/* Module Sidebar Selector */}
+        <div className="lg:col-span-1 bg-[#161b22] border border-[#30363d] rounded-2xl p-4 space-y-3 flex flex-col max-h-[600px] overflow-hidden">
+          <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider px-2 flex items-center justify-between">
+            <span>Package Modules</span>
+            <span className="text-slate-500 font-mono">({modules.length})</span>
+          </h3>
 
-          <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
-            {modules.map((mod) => (
-              <button
-                key={mod.id}
-                onClick={() => setSelectedModuleId(mod.id)}
-                className={`w-full text-left p-2.5 rounded-lg text-xs font-mono transition flex flex-col gap-1 ${
-                  selectedModuleId === mod.id
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 font-semibold'
-                    : 'bg-[#161b22] text-slate-300 border border-[#30363d] hover:bg-[#1c2128]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="truncate">{mod.name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#0d1117] text-slate-400 uppercase">
-                    {mod.category}
-                  </span>
-                </div>
-              </button>
-            ))}
+          <div className="overflow-y-auto space-y-1.5 flex-1 pr-1">
+            {modules.map(mod => {
+              const isSelected = mod.id === selectedModuleId;
+              return (
+                <button
+                  key={mod.id}
+                  onClick={() => handleModuleChange(mod.id)}
+                  className={`w-full text-left p-3 rounded-xl border transition-all ${
+                    isSelected
+                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300 font-medium'
+                      : 'bg-[#0d1117] border-[#30363d] text-slate-400 hover:text-slate-200 hover:border-slate-600'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-bold text-slate-200">{mod.name}</span>
+                    <span className="text-[10px] font-mono text-slate-500 uppercase">{mod.category}</span>
+                  </div>
+                  <div className="text-[11px] font-mono text-slate-500 truncate">
+                    {mod.packages.join(' ')}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Right Code Editor Panel */}
-        <div className="lg:col-span-3 glass-panel rounded-xl overflow-hidden border border-[#30363d] flex flex-col">
-          {/* Tab Header */}
-          <div className="flex items-center justify-between border-b border-[#30363d] bg-[#0d1117] px-4 py-2">
-            <div className="flex items-center gap-1">
-              {(['install', 'configure', 'verify', 'uninstall'] as const).map((tab) => (
+        {/* Code Editor Window */}
+        <div className="lg:col-span-3 bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden flex flex-col">
+          {/* Script Phase Tabs Header */}
+          <div className="bg-[#0d1117] border-b border-[#30363d] px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <FileCode className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-mono text-slate-200 font-semibold">
+                {currentModule?.id}/{activePhase}.sh
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1 bg-[#161b22] p-1 rounded-xl border border-[#30363d]">
+              {(['install', 'configure', 'verify', 'uninstall'] as const).map(phase => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-3 py-1.5 text-xs font-mono font-semibold rounded-t-lg transition flex items-center gap-1.5 ${
-                    activeTab === tab
-                      ? 'bg-[#161b22] text-emerald-400 border-t-2 border-emerald-400'
+                  key={phase}
+                  onClick={() => handlePhaseChange(phase)}
+                  className={`px-3 py-1.5 text-xs font-mono rounded-lg capitalize transition-all ${
+                    activePhase === phase
+                      ? 'bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <FileCode className="h-3.5 w-3.5" />
-                  {tab}.sh
+                  {phase}.sh
                 </button>
               ))}
             </div>
-
-            <div className="text-xs font-mono text-slate-400">
-              Module: <span className="text-slate-100 font-bold">{selectedModule?.name}</span>
-            </div>
           </div>
 
-          {/* Editor Container with Line Numbers */}
-          <div className="flex-1 min-h-[420px] bg-[#090d13] p-4 flex font-mono text-xs leading-relaxed overflow-x-auto">
-            {/* Line Numbers Column */}
-            <div className="select-none text-slate-600 text-right pr-4 border-r border-[#30363d]/50 space-y-1">
-              {Array.from({ length: lineCount }).map((_, i) => (
-                <div key={i}>{i + 1}</div>
-              ))}
-            </div>
-
-            {/* Code Input Area */}
+          {/* Code Textarea Editor */}
+          <div className="p-4 bg-[#090d13] flex-1 relative min-h-[420px]">
             <textarea
-              value={currentCode}
-              onChange={(e) => handleCodeChange(e.target.value)}
-              className="flex-1 bg-transparent pl-4 text-emerald-300 focus:outline-none resize-none font-mono text-xs leading-relaxed"
+              value={code}
+              onChange={e => setCode(e.target.value)}
               spellCheck={false}
+              className="w-full h-full min-h-[400px] bg-transparent text-emerald-400 font-mono text-xs leading-relaxed focus:outline-none resize-none p-2"
             />
           </div>
 
-          {/* Editor Footer */}
-          <div className="border-t border-[#30363d] bg-[#0d1117] px-4 py-2 flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Bash Shell (set -euo pipefail)</span>
-            <span>Lines: {lineCount}</span>
+          {/* Footer Info Bar */}
+          <div className="px-4 py-2.5 bg-[#0d1117] border-t border-[#30363d] flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <div>Lines: {code.split('\n').length} | Syntax: Bash Shell Script</div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Ready to execute
+            </div>
           </div>
         </div>
       </div>

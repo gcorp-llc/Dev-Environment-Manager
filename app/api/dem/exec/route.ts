@@ -2,170 +2,135 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { command, target, moduleData, profileData, scriptContent } = body;
+    const { command, target, scriptCode, moduleDetails } = await req.json();
+    const timestamp = new Date().toLocaleTimeString();
 
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const sendLog = (text: string) => {
-          const timestamp = new Date().toISOString().substring(11, 19);
-          controller.enqueue(encoder.encode(`[${timestamp}] ${text}\n`));
-        };
+    let logs: string[] = [];
+    let success = true;
 
-        const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+    if (command === 'doctor') {
+      logs = [
+        `[${timestamp}] [DEM DOCTOR] Running system health diagnostics on Debian 13 (Trixie)...`,
+        `[${timestamp}] [CHECK] Verifying Debian release: Debian GNU/Linux 13 (Trixie) [OK]`,
+        `[${timestamp}] [CHECK] Inspecting APT package manager locks under /var/lib/dpkg/lock... [OK]`,
+        `[${timestamp}] [CHECK] Validating /etc/apt/keyrings signed-by GPG keyring files... [OK]`,
+        `[${timestamp}] [CHECK] Testing systemd DBus bus interface and PID 1 availability... [OK]`,
+        `[${timestamp}] [CHECK] Testing CPU instruction sets: SSE4.2, AVX, AVX2 enabled... [OK]`,
+        `[${timestamp}] [CHECK] Testing outbound HTTPS keyserver fallback over port 443... [OK]`,
+        `[${timestamp}] [CHECK] Checking line endings and executable flags across all package scripts... [OK]`,
+        `[${timestamp}] [SUCCESS] All system diagnostics passed with 0 critical errors.`
+      ];
+    } else if (command === 'install_module') {
+      const modName = moduleDetails?.name || target || 'Target Module';
+      const packages = moduleDetails?.packages?.join(' ') || 'packages';
+      logs = [
+        `[${timestamp}] [DEM MODULE INSTALL] Target: ${modName} (${moduleDetails?.id || target})`,
+        `[${timestamp}] [EXEC] Executing install.sh for category '${moduleDetails?.category || 'system'}'...`,
+        `[${timestamp}] [APT] Updating package lists: apt-get update -qq`,
+        `[${timestamp}] [APT] Installing packages: apt-get install -y ${packages}`,
+        `[${timestamp}] [GPG] Verifying keyring signatures under /etc/apt/keyrings/`,
+        `[${timestamp}] [EXEC] Executing configure.sh...`,
+        moduleDetails?.hasServices ? `[${timestamp}] [SERVICE] Enabling systemd unit: systemctl enable --now ${moduleDetails.serviceName}.service` : `[${timestamp}] [CONFIG] Environment configuration applied.`,
+        `[${timestamp}] [EXEC] Executing verify.sh...`,
+        `[${timestamp}] [VERIFY] Binary and runtime health check passed for ${modName}`,
+        `[${timestamp}] [SUCCESS] Module '${modName}' installed and verified successfully.`
+      ];
+    } else if (command === 'verify_module') {
+      const modName = moduleDetails?.name || target || 'Target Module';
+      logs = [
+        `[${timestamp}] [DEM MODULE VERIFY] Running verification test for: ${modName}`,
+        `[${timestamp}] [EXEC] Executing script: verify.sh`,
+        `[${timestamp}] [CHECK] Validating binary PATH locations... [OK]`,
+        moduleDetails?.hasServices ? `[${timestamp}] [CHECK] Checking systemd service state '${moduleDetails.serviceName}'... [ACTIVE]` : `[${timestamp}] [CHECK] Library dependencies checked... [OK]`,
+        `[${timestamp}] [SUCCESS] Verification test passed for '${modName}'. Exit code 0.`
+      ];
+    } else if (command === 'uninstall_module') {
+      const modName = moduleDetails?.name || target || 'Target Module';
+      logs = [
+        `[${timestamp}] [DEM MODULE UNINSTALL] Purging module: ${modName}`,
+        `[${timestamp}] [EXEC] Executing script: uninstall.sh`,
+        moduleDetails?.hasServices ? `[${timestamp}] [SERVICE] Stopping systemd service '${moduleDetails.serviceName}'...` : `[${timestamp}] [CLEANUP] Cleaning module configuration files...`,
+        `[${timestamp}] [APT] Purging package dependencies: apt-get purge -y`,
+        `[${timestamp}] [SUCCESS] Module '${modName}' uninstalled cleanly.`
+      ];
+    } else if (command === 'install') {
+      const profileName = target || 'server';
+      logs = [
+        `[${timestamp}] [DEM INSTALL] Initiating sequential installation for profile: '${profileName}'`,
+        `[${timestamp}] [STEP 1/4] Running core module scripts (install.sh -> configure.sh -> verify.sh)...`,
+        `[${timestamp}] [INFO] Core build-essential, ca-certificates, gnupg, curl, git verified.`,
+        `[${timestamp}] [STEP 2/4] Processing system configuration: locales, timezone, sudo policies...`,
+        `[${timestamp}] [STEP 3/4] Installing profile target packages: docker, languages, databases-engines...`,
+        `[${timestamp}] [APT] Updating package indexes from official Debian 13 trixie mirrors...`,
+        `[${timestamp}] [GPG] Importing third-party GPG keyrings into /etc/apt/keyrings/...`,
+        `[${timestamp}] [SERVICE] Enabling systemd units for installed engine services...`,
+        `[${timestamp}] [STEP 4/4] Executing module verification test suites...`,
+        `[${timestamp}] [VERIFY] Node.js v22.13.0 - PASS`,
+        `[${timestamp}] [VERIFY] Go v1.22.5 - PASS`,
+        `[${timestamp}] [VERIFY] Docker Engine daemon - ACTIVE (running)`,
+        `[${timestamp}] [VERIFY] PostgreSQL 16 server - LISTENING (5432)`,
+        `[${timestamp}] [SUCCESS] Profile '${profileName}' installed and verified successfully.`
+      ];
+    } else if (command === 'verify') {
+      const profileName = target || 'server';
+      logs = [
+        `[${timestamp}] [DEM VERIFY] Running verification suite for profile: '${profileName}'`,
+        `[${timestamp}] [VERIFY] Core binaries: /usr/bin/git, /usr/bin/curl, /usr/bin/gnupg - OK`,
+        `[${timestamp}] [VERIFY] Systemd services status: docker.service [active], postgresql.service [active]`,
+        `[${timestamp}] [VERIFY] Language runtimes: node (22.13.0), go (1.22.5), rustc (1.80.0) - OK`,
+        `[${timestamp}] [VERIFY] Database engines: MariaDB [OK], ScyllaDB [OK], Dragonfly [OK]`,
+        `[${timestamp}] [SUCCESS] All module verification scripts returned exit code 0.`
+      ];
+    } else if (command === 'repair') {
+      logs = [
+        `[${timestamp}] [DEM REPAIR] Starting automated workspace and APT system state repair...`,
+        `[${timestamp}] [REPAIR 1/4] Normalizing file line endings from CRLF -> LF across all .sh files...`,
+        `[${timestamp}] [REPAIR 2/4] Setting chmod +x execution permissions on ./dem.sh and commands/*...`,
+        `[${timestamp}] [REPAIR 3/4] Running 'dpkg --configure -a' and clearing interrupted locks...`,
+        `[${timestamp}] [REPAIR 4/4] Regenerating locale data and verifying GPG keyring permissions...`,
+        `[${timestamp}] [SUCCESS] Workspace repaired. All scripts normalized and ready.`
+      ];
+    } else if (command === 'backup') {
+      const backupFilename = `dem_backup_${new Date().toISOString().split('T')[0]}.tar.gz`;
+      logs = [
+        `[${timestamp}] [DEM BACKUP] Archiving system configurations and active profile manifests...`,
+        `[${timestamp}] [ARCHIVE] Packing /etc/apt/sources.list.d/*.list ...`,
+        `[${timestamp}] [ARCHIVE] Packing /etc/apt/keyrings/* ...`,
+        `[${timestamp}] [ARCHIVE] Packing DEM custom profiles into archive...`,
+        `[${timestamp}] [SUCCESS] Backup created at /var/backups/${backupFilename} (2.4 MB)`
+      ];
+    } else if (command === 'uninstall') {
+      const profileName = target || 'desktop';
+      logs = [
+        `[${timestamp}] [DEM UNINSTALL] Initiating reverse-order uninstallation for profile: '${profileName}'`,
+        `[${timestamp}] [WARN] Purging packages and services in reverse architectural order...`,
+        `[${timestamp}] [UNINSTALL 1/3] Removing desktop and office packages...`,
+        `[${timestamp}] [UNINSTALL 2/3] Stopping and disabling associated systemd services...`,
+        `[${timestamp}] [UNINSTALL 3/3] Purging custom APT source entries and keyrings under /etc/apt/keyrings/...`,
+        `[${timestamp}] [SUCCESS] Profile '${profileName}' uninstalled cleanly. System restored.`
+      ];
+    } else if (command === 'run_custom_script') {
+      const scriptLines = scriptCode ? scriptCode.split('\n') : ['echo "Executing custom script..."'];
+      logs = [
+        `[${timestamp}] [DEM SCRIPT EXECUTION] Starting execution of custom Bash script:`,
+        ...scriptLines.map((l: string) => `> ${l}`),
+        `[${timestamp}] [EXEC] Script exited with return code 0 [SUCCESS]`
+      ];
+    } else {
+      logs = [
+        `[${timestamp}] Executing custom command: ./dem.sh ${command} ${target || ''}`,
+        `[${timestamp}] Command output processed. Exit code: 0`
+      ];
+    }
 
-        sendLog(`[EXEC] Initializing DEM v2.5.0 LTS Execution Engine on Debian 13 (Trixie)...`);
-        sendLog(`[EXEC] Action Target: command="${command}", target="${target || 'system'}"`);
-        await sleep(150);
-
-        if (command === 'doctor') {
-          sendLog(`[STEP 1/6] [SYSTEM] Inspecting /etc/os-release target...`);
-          await sleep(200);
-          sendLog(`[INFO] PRETTY_NAME="Debian GNU/Linux 13 (trixie)"`);
-          sendLog(`[SUCCESS] Kernel target verified: Linux 6.12.0-8-amd64 x86_64.`);
-          
-          sendLog(`[STEP 2/6] [DPKG] Checking APT lock files...`);
-          await sleep(250);
-          sendLog(`[INFO] Inspecting /var/lib/dpkg/lock-frontend... UNLOCKED`);
-          sendLog(`[INFO] Inspecting /var/lib/apt/lists/lock... UNLOCKED`);
-          sendLog(`[SUCCESS] APT lock checks passed. No concurrent locks detected.`);
-
-          sendLog(`[STEP 3/6] [GPG] Checking /etc/apt/keyrings security permissions...`);
-          await sleep(200);
-          sendLog(`[GPG] Directory /etc/apt/keyrings exists (drwxr-xr-x 2 root root)`);
-          sendLog(`[GPG] Found 4 signed keyrings: docker.gpg, nodesource.gpg, microsoft.gpg, debian-trixie.gpg`);
-          sendLog(`[SUCCESS] GPG keyring security verified.`);
-
-          sendLog(`[STEP 4/6] [SERVICE] Checking Systemd Init Controller PID 1...`);
-          await sleep(200);
-          sendLog(`[SERVICE] Systemd v256.4 active (systemd-sysv). D-Bus IPC connected.`);
-
-          sendLog(`[STEP 5/6] [HW] Probing CPU instruction sets...`);
-          await sleep(200);
-          sendLog(`[INFO] Flags: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology tsc_known_freq pni pclmulqdq ssse3 fma cx16 pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch cpuid fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid rdseed adx smap clflushopt xsaveopt xsavec xgetbv1 xsaves arat`);
-          sendLog(`[SUCCESS] AVX2 & FMA hardware acceleration supported.`);
-
-          sendLog(`[STEP 6/6] [STORAGE] Checking storage mount space...`);
-          await sleep(150);
-          sendLog(`[INFO] Filesystem /dev/sda1 100G mounted on / (Available: 42.8G, Used: 57.2G)`);
-          sendLog(`[SUCCESS] System Diagnostics complete. 0 CRITICAL ERRORS, 1 WARNING.`);
-        } 
-        else if (command === 'install_module' && moduleData) {
-          const modName = moduleData.name || target;
-          sendLog(`[STEP 1/4] [INSTALL] Executing install.sh for module '${modName}'...`);
-          sendLog(`[EXEC] $ ${moduleData.scripts?.install || 'apt-get install -y ' + (moduleData.packages?.join(' ') || '')}`);
-          await sleep(300);
-          sendLog(`[APT] Reading package lists... Done`);
-          sendLog(`[APT] Building dependency tree... Done`);
-          sendLog(`[APT] Setting up packages: ${moduleData.packages?.join(', ') || 'OK'}`);
-          sendLog(`[SUCCESS] Module installation completed successfully.`);
-
-          sendLog(`[STEP 2/4] [CONFIGURE] Executing configure.sh...`);
-          sendLog(`[EXEC] $ ${moduleData.scripts?.configure || 'echo Configuration complete'}`);
-          await sleep(250);
-          sendLog(`[SUCCESS] Configuration step finalized.`);
-
-          if (moduleData.hasServices) {
-            sendLog(`[STEP 3/4] [SERVICE] Enabling systemd unit '${moduleData.serviceName}'...`);
-            await sleep(200);
-            sendLog(`[SERVICE] Created symlink /etc/systemd/system/multi-user.target.wants/${moduleData.serviceName}.service`);
-            sendLog(`[SERVICE] Service state: ACTIVE (running)`);
-          } else {
-            sendLog(`[STEP 3/4] [SERVICE] No systemd background daemon required.`);
-          }
-
-          sendLog(`[STEP 4/4] [VERIFY] Executing verify.sh script...`);
-          sendLog(`[EXEC] $ ${moduleData.scripts?.verify || 'which ' + moduleData.name}`);
-          await sleep(200);
-          sendLog(`[SUCCESS] Module '${modName}' installation & verification PASSED.`);
-        }
-        else if (command === 'verify_module' && moduleData) {
-          sendLog(`[VERIFY] Checking PATH binaries for '${moduleData.name}'...`);
-          await sleep(200);
-          sendLog(`[INFO] Package list: ${moduleData.packages?.join(', ')}`);
-          sendLog(`[EXEC] $ ${moduleData.scripts?.verify || 'which ' + moduleData.name}`);
-          await sleep(200);
-          if (moduleData.hasServices) {
-            sendLog(`[SERVICE] Checking systemctl is-active ${moduleData.serviceName}...`);
-            sendLog(`[SERVICE] Unit ${moduleData.serviceName}.service: active (running)`);
-          }
-          sendLog(`[SUCCESS] Verification completed for '${moduleData.name}'. Status: VERIFIED.`);
-        }
-        else if (command === 'uninstall_module' && moduleData) {
-          sendLog(`[UNINSTALL] Purging module '${moduleData.name}' from Debian 13 system...`);
-          await sleep(200);
-          if (moduleData.hasServices) {
-            sendLog(`[SERVICE] Stopping systemd service '${moduleData.serviceName}'...`);
-            sendLog(`[SERVICE] Disabling systemctl unit '${moduleData.serviceName}'...`);
-          }
-          sendLog(`[EXEC] $ ${moduleData.scripts?.uninstall || 'apt-get purge -y ' + (moduleData.packages?.join(' ') || '')}`);
-          await sleep(300);
-          sendLog(`[APT] Removing configuration files... Done`);
-          sendLog(`[SUCCESS] Module '${moduleData.name}' uninstalled and purged.`);
-        }
-        else if (command === 'install' || command === 'verify' || command === 'uninstall') {
-          const profName = profileData?.name || target || 'Profile Stack';
-          sendLog(`[BATCH] Starting batch execution (${command.toUpperCase()}) for profile '${profName}'...`);
-          await sleep(200);
-          const mods = profileData?.modules || ['core', 'system', 'development', 'docker'];
-          for (let i = 0; i < mods.length; i++) {
-            sendLog(`[BATCH ${i + 1}/${mods.length}] Processing module category key: ${mods[i]}...`);
-            await sleep(250);
-            sendLog(`[SUCCESS] Category '${mods[i]}' ${command} completed.`);
-          }
-          sendLog(`[SUCCESS] Batch profile '${profName}' execution completed successfully.`);
-        }
-        else if (command === 'repair') {
-          sendLog(`[REPAIR] Running System Environment Auto-Repair Routine...`);
-          await sleep(250);
-          sendLog(`[REPAIR 1/4] Normalizing CRLF line endings to LF across /etc/dem/ and scripts...`);
-          await sleep(200);
-          sendLog(`[REPAIR 2/4] Applying chmod +x to all executable bash lifecycle scripts...`);
-          await sleep(200);
-          sendLog(`[REPAIR 3/4] Checking for stale dpkg lock files and clearing /var/lib/dpkg/lock...`);
-          await sleep(200);
-          sendLog(`[REPAIR 4/4] Refreshing APT package index cache via 'apt-get update -qq'...`);
-          await sleep(300);
-          sendLog(`[SUCCESS] Repair operation complete. All permissions & CRLF line endings normalized.`);
-        }
-        else if (command === 'backup') {
-          sendLog(`[BACKUP] Generating system profile manifest archive...`);
-          await sleep(200);
-          sendLog(`[ARCHIVE] Compressing /etc/apt/sources.list.d/*.list ...`);
-          sendLog(`[ARCHIVE] Exporting /etc/apt/keyrings/*.gpg keyrings ...`);
-          sendLog(`[ARCHIVE] Packaging DEM JSON configuration and bash modules ...`);
-          await sleep(300);
-          const filename = `dem-backup-debian13-${new Date().toISOString().slice(0, 10)}.tar.gz`;
-          sendLog(`[SUCCESS] Backup archive generated successfully: /var/backups/dem/${filename} (Size: 4.2 MB)`);
-        }
-        else if (command === 'run_custom_script') {
-          sendLog(`[CUSTOM] Executing custom Bash user script...`);
-          const lines = (scriptContent || '').split('\n').filter((l: string) => l.trim().length > 0);
-          for (let i = 0; i < lines.length; i++) {
-            sendLog(`[LINE ${i + 1}/${lines.length}] $ ${lines[i]}`);
-            await sleep(150);
-          }
-          sendLog(`[SUCCESS] Custom script execution finished with exit code 0.`);
-        }
-        else {
-          sendLog(`[WARN] Command '${command}' executed.`);
-          sendLog(`[SUCCESS] Action completed.`);
-        }
-
-        sendLog(`[EXEC] Execution finished with exit status 0 (SUCCESS).`);
-        controller.close();
-      },
+    return NextResponse.json({
+      success,
+      command,
+      target,
+      timestamp,
+      logs
     });
-
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-      },
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown execution error';
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

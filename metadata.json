@@ -1,0 +1,8 @@
+{
+  "name": "Dev Environment Manager",
+  "description": "Web management dashboard and control panel for Dev Environment Manager (DEM) on Debian 13 (Trixie).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

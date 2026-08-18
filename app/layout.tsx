@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Dev Environment Manager (DEM) v2.5.0 LTS | Debian 13 Trixie',
-  description: 'Production-grade Linux developer environment provisioning, editing, and diagnostic web application for Debian 13 (Trixie).',
+  title: 'Dev Environment Manager (DEM) - Web Control Hub',
+  description: 'Production-ready environment provisioning framework for Debian 13 (Trixie)',
 };
 
 export default function RootLayout({
@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#0d1117] text-slate-200 antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+    <html lang="en">
+      <body className="antialiased bg-[#0d1117] text-slate-100">
         {children}
       </body>
     </html>
