@@ -2,6 +2,12 @@
 set -euo pipefail
 dem_title "Configure System"
 
+if dem_is_dry_run; then
+    dem_dry_run_log "Configuring Timezone, Locales (en_US.UTF-8), Hostname, and Sudo group"
+    dem_success "System configuration simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
+fi
+
 # 1. Timezone Configuration (Never overwrite existing custom settings)
 CURRENT_TZ=$(timedatectl show --property=Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo "")
 if [[ -z "$CURRENT_TZ" || "$CURRENT_TZ" == "Etc/UTC" || "$CURRENT_TZ" == "UTC" ]]; then

@@ -1,8 +1,12 @@
 dem_check_debian() {
 
-    source /etc/os-release
-
-    [[ "$ID" == "debian" ]]
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        source /etc/os-release
+        [[ "${ID:-}" == "debian" && ( "${VERSION_ID:-}" == "13" || "${VERSION_CODENAME:-}" == "trixie" ) ]]
+    else
+        false
+    fi
 
 }
 

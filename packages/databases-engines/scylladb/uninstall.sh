@@ -4,6 +4,12 @@ dem_title "Uninstall ScyllaDB"
 
 dem_require_root
 
+if dem_is_dry_run; then
+    dem_dry_run_log "Stopping scylla-server service and removing scylla package and APT repository files"
+    dem_success "ScyllaDB uninstallation simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
+fi
+
 if dem_service_running scylla-server; then
     dem_service_stop scylla-server
 fi

@@ -2,6 +2,12 @@
 set -euo pipefail
 dem_title "Configure Docker"
 
+if dem_is_dry_run; then
+    dem_dry_run_log "Adding user to docker group and starting docker systemd daemon"
+    dem_success "Docker configuration simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
+fi
+
 # Ensure docker group exists
 if ! getent group docker >/dev/null 2>&1; then
     groupadd docker
