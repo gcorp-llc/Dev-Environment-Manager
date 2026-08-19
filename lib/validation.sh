@@ -1,5 +1,10 @@
 dem_validate_environment() {
 
+    if dem_is_dry_run; then
+        dem_dry_run_log "Validating environment (Debian 13 check skipped in dry-run mode)"
+        return 0
+    fi
+
     dem_check_debian || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Unsupported distribution or version. DEM strictly targets Debian 13 (Trixie)."
 
     dem_check_network || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "No Internet connection."
