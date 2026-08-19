@@ -2,10 +2,6 @@
 set -euo pipefail
 dem_title "Uninstall Desktop Development Tools"
 
-dem_package_remove code
-
-# Remove repository configuration
-rm -f /etc/apt/sources.list.d/vscode.list
-rm -f /etc/apt/keyrings/packages.microsoft.gpg
+source "$DEM_PACKAGE_DIR/tools/vscode/uninstall.sh"
 
 dem_success "Desktop development tools uninstalled."
