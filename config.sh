@@ -25,3 +25,12 @@ readonly DEM_SERVICE_DIR="$DEM_ROOT/services"
 readonly DEM_CONFIG_DIR="$DEM_ROOT/configs"
 
 readonly DEM_TEMPLATE_DIR="$DEM_ROOT/templates"
+
+# Standard Exit Codes
+readonly DEM_EXIT_SUCCESS=0
+readonly DEM_EXIT_ERROR=1
+readonly DEM_EXIT_PREREQ_MISSING=2
+readonly DEM_EXIT_SKIP_ALREADY_INSTALLED=3
+
+# Global Dry-Run Flag
+DEM_DRY_RUN="${DEM_DRY_RUN:-false}"

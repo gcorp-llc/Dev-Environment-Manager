@@ -9,21 +9,38 @@ readonly SCYLLA_SOURCE="/etc/apt/sources.list.d/scylla.list"
 readonly SCYLLA_REPOSITORY_URL="https://downloads.scylladb.com/deb/debian/scylla-2026.2.list"
 readonly SCYLLA_KEY_ID="c503c686b007f39e"
 
-# 1. Debian 13 Compatibility Check and Version Policy
+# 1. Check if ScyllaDB is already installed
+if dem_command_exists scylla && [[ -f "$SCYLLA_KEYRING" && -f "$SCYLLA_SOURCE" ]]; then
+    dem_info "ScyllaDB is already installed and repository is configured."
+    dem_success "ScyllaDB installation check passed (no reinstall needed)."
+    exit "${DEM_EXIT_SKIP_ALREADY_INSTALLED:-3}"
+fi
+
+# 2. Debian 13 Compatibility Check and Version Policy
 if [[ -f /etc/os-release ]]; then
     # shellcheck disable=SC1091
     source /etc/os-release
 fi
 
-if [[ "${VERSION_CODENAME:-}" == "trixie" ]]; then
+if [[ "${VERSION_CODENAME:-}" == "trixie" || "${VERSION_ID:-}" == "13" ]]; then
     DEM_ALLOW_UNSUPPORTED_SCYLLA="${DEM_ALLOW_UNSUPPORTED_SCYLLA:-false}"
     if [[ "$DEM_ALLOW_UNSUPPORTED_SCYLLA" != "true" ]]; then
         dem_error "ScyllaDB does not natively support Debian 13 (trixie) yet."
         dem_error "To override this limitation and fallback to Debian 12 (bookworm) compatibility mode, please set DEM_ALLOW_UNSUPPORTED_SCYLLA=true"
-        exit 1
+        exit "${DEM_EXIT_PREREQ_MISSING:-2}"
     else
         dem_warning "ScyllaDB is running via Debian 12 (bookworm) packages on Debian 13 as an explicitly opted-in compatibility fallback. Not officially supported by ScyllaDB upstream as of this release."
     fi
+fi
+
+# 3. Dry-Run Handling
+if dem_is_dry_run; then
+    dem_dry_run_log "Configuring ScyllaDB GPG keyring in $SCYLLA_KEYRING"
+    dem_dry_run_log "Configuring ScyllaDB APT sources in $SCYLLA_SOURCE"
+    dem_package_update
+    dem_package_install scylla
+    dem_success "ScyllaDB installation simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
 fi
 
 mkdir -p /etc/apt/keyrings

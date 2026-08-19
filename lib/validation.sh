@@ -1,12 +1,12 @@
 dem_validate_environment() {
 
-    dem_check_debian || dem_fatal "Unsupported distribution."
+    dem_check_debian || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Unsupported distribution or version. DEM strictly targets Debian 13 (Trixie)."
 
-    dem_check_network || dem_fatal "No Internet connection."
+    dem_check_network || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "No Internet connection."
 
-    dem_check_apt || dem_fatal "APT not found."
+    dem_check_apt || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "APT package manager not found."
 
-    dem_check_systemd || dem_fatal "Systemd not found."
+    dem_check_systemd || dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Systemd service manager not found."
 
 }
 

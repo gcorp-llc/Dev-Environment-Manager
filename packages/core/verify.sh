@@ -2,6 +2,12 @@
 set -euo pipefail
 dem_title "Verify Core"
 
+if dem_is_dry_run; then
+    dem_dry_run_log "Verifying Core build tools, compression utilities, network tools, and Debian 13 platform requirements"
+    dem_success "Core verification simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
+fi
+
 dem_require_command apt-get
 dem_require_command git
 dem_require_command curl
@@ -22,13 +28,11 @@ dem_require_command xz
 dem_require_command rsync
 
 if [[ ! -d /etc/apt/keyrings ]]; then
-    dem_error "APT keyrings directory is missing: /etc/apt/keyrings"
-    exit 1
+    dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "APT keyrings directory is missing: /etc/apt/keyrings"
 fi
 
 if [[ ! -r /etc/debian_version ]]; then
-    dem_error "Debian version information is unavailable."
-    exit 1
+    dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Debian version information is unavailable."
 fi
 
 if [[ -r /etc/os-release ]]; then
@@ -36,13 +40,11 @@ if [[ -r /etc/os-release ]]; then
     source /etc/os-release
 
     if [[ "${ID:-}" != "debian" ]]; then
-        dem_error "Core requires Debian."
-        exit 1
+        dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Core requires Debian platform."
     fi
 
-    if [[ "${VERSION_CODENAME:-}" != "trixie" ]]; then
-        dem_error "Core requires Debian 13 (trixie). Detected: ${VERSION_CODENAME:-unknown}"
-        exit 1
+    if [[ "${VERSION_CODENAME:-}" != "trixie" && "${VERSION_ID:-}" != "13" ]]; then
+        dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Core requires Debian 13 (trixie). Detected: ${VERSION_CODENAME:-unknown}"
     fi
 fi
 

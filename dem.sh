@@ -24,11 +24,11 @@ cat <<EOF
 
 Usage
 
-  ./dem.sh install [profile]
-  ./dem.sh uninstall [profile]
-  ./dem.sh configure [profile]
-  ./dem.sh verify [profile]
-  ./dem.sh remove [profile]
+  ./dem.sh install [profile] [--dry-run]
+  ./dem.sh uninstall [profile] [--dry-run]
+  ./dem.sh configure [profile] [--dry-run]
+  ./dem.sh verify [profile] [--dry-run]
+  ./dem.sh remove [profile] [--dry-run]
 
   ./dem.sh doctor
 
@@ -58,6 +58,9 @@ Usage
 
   ./dem.sh help
 
+Options:
+  --dry-run    Simulate operations without making persistent changes.
+
 EOF
 
 }
@@ -70,13 +73,36 @@ load_command() {
 
 }
 
+parse_flags() {
+
+    local args=()
+
+    for arg in "$@"; do
+        if [[ "$arg" == "--dry-run" ]]; then
+            export DEM_DRY_RUN="true"
+        else
+            args+=("$arg")
+        fi
+    done
+
+    # Return parsed non-flag args
+    if [[ ${#args[@]} -gt 0 ]]; then
+        echo "${args[@]}"
+    fi
+
+}
+
 run_install() {
 
     load_command install
 
     shift
 
-    dem_command_install "$@"
+    # Parse --dry-run
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_install $parsed
 
 }
 
@@ -86,7 +112,10 @@ run_uninstall() {
 
     shift
 
-    dem_command_uninstall "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_uninstall $parsed
 
 }
 
@@ -96,7 +125,10 @@ run_configure() {
 
     shift
 
-    dem_command_configure "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_configure $parsed
 
 }
 
@@ -106,7 +138,10 @@ run_verify() {
 
     shift
 
-    dem_command_verify "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_verify $parsed
 
 }
 
@@ -116,7 +151,10 @@ run_remove() {
 
     shift
 
-    dem_command_remove "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_remove $parsed
 
 }
 
@@ -198,7 +236,10 @@ run_service() {
 
     shift
 
-    dem_command_service "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_service $parsed
 
 }
 
@@ -208,7 +249,10 @@ run_profile() {
 
     shift
 
-    dem_command_profile "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_profile $parsed
 
 }
 
@@ -218,7 +262,10 @@ run_platform() {
 
     shift
 
-    dem_command_platform "$@"
+    local parsed
+    parsed=$(parse_flags "$@")
+
+    dem_command_platform $parsed
 
 }
 

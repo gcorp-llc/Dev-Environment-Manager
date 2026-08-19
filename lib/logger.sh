@@ -40,6 +40,28 @@ dem_error() {
 dem_fatal() {
 
     dem_error "$@"
-    exit 1
+    exit "${DEM_EXIT_ERROR:-1}"
+
+}
+
+dem_fatal_code() {
+
+    local code="$1"
+    shift
+    dem_error "$@"
+    exit "$code"
+
+}
+
+dem_exit() {
+
+    local code="${1:-0}"
+    exit "$code"
+
+}
+
+dem_dry_run_log() {
+
+    dem_log "DRY " "$DEM_WARNING" "[Dry-Run] $*"
 
 }
