@@ -5,15 +5,16 @@ All notable changes to the Dev Environment Manager (DEM) will be documented in t
 ## [v1.0.0]
 
 ### Added
-- **Unified Command Framework**: Introduced `dem.sh` controller supporting installation, configuration, verification, uninstallation, diagnostics (`doctor`), status, repair, cleanup, and backup/restore actions.
-- **Strict 12-Category Module Structure**: Organised provisioning scripts under standard root packages (`core`, `system`, `development`, `docker`, `languages`, `databases`, `databases-engines`, `frameworks`, `office`, `tools`, `desktop`, `server`).
-- **Complete Decoupled DB Engine Lifecycle**: Implemented fully production-ready services for PostgreSQL, ScyllaDB, DragonflyDB, and Vespa, each maintaining modular installation, configuration, verification, and uninstallation.
-- **Modern Debian 13 APT Standards**: Decoupled all third-party APT configurations, utilizing modern GPG keyring setups under `/etc/apt/keyrings/` with specified `signed-by` sources list configurations. Completely deprecated obsolete `apt-key` usage.
-- **Lightweight React Native Workflow**: Added an Expo and React Native workflow supporting physical Android devices via adb, fastboot, and OpenJDK, strictly avoiding heavy Android Studio installations.
-- **Full Life-cycle Idempotence**: Added safety guards (`getent`, `grep`, `ln -sf`, check files) ensuring that all scripts are safely repeatable without system state corruption.
-- **Comprehensive Technical Documentation**: Created comprehensive guides including `ARCHITECTURE.md`, `DEVELOPMENT.md`, and `CONTRIBUTING.md` detailing codebase flows and standards.
+- **Phase 1 (Core Framework & Foundation)**: Established root command dispatcher (`dem.sh`), global environment bootstrap (`bootstrap.sh`), central configuration (`config.sh`), and standard return codes (`0`: Success, `1`: Error, `2`: Missing Prerequisites, `3`: Skip / Already Installed).
+- **Phase 2 (12-Category Module Architecture)**: Created strict 12-category package hierarchy (`core`, `system`, `development`, `docker`, `languages`, `databases`, `databases-engines`, `frameworks`, `office`, `tools`, `desktop`, `server`) enforcing the 4-script contract (`install.sh`, `configure.sh`, `verify.sh`, `uninstall.sh`).
+- **Phase 3 (Debian 13 APT Security & Decoupled Repositories)**: Decoupled third-party APT setups directly into owning package modules, placing GPG keys under `/etc/apt/keyrings/` with modern `signed-by` sources list descriptors. Completely eliminated deprecated `apt-key` usage.
+- **Phase 4 (Services Abstraction Layer & Production Database Engines)**: Implemented wrapper functions in `lib/services.sh` encapsulating systemd operations, integrated with native production database services (PostgreSQL, ScyllaDB, DragonflyDB, Redpanda, Vespa containerized stack).
+- **Phase 5 (Unified Scanner, Profile Orchestration & Dry-Run Support)**: Integrated unified verification scanner in `commands/verify.sh`, declarative profile orchestrators (`minimal`, `server`, `desktop`), CLI standardization, and full `--dry-run` execution mode.
+- **Phase 6 (Comprehensive Testing, Error Scenarios & Documentation)**: Completed E2E idempotency and dry-run testing, added developer documentation (`DOCS/MODULE_GUIDE.md`), updated `README.md` with CLI commands and flags, and finalized release readiness checklist.
+- **Lightweight React Native Workflow**: Added Expo / React Native environment targeting physical Android devices via adb, fastboot, and OpenJDK without heavy IDE footprints.
+- **Comprehensive Technical Documentation**: Produced complete system documentation including `README.md`, `ARCHITECTURE.md`, `DEVELOPMENT.md`, `CONTRIBUTING.md`, `DOCS/MODULE_GUIDE.md`, and `FINAL_ACCEPTANCE_REPORT.md`.
 
 ### Changed
-- **Refactored Service Layer**: Modified all service management inside modules to run through consistent custom abstractions `dem_service_*` defined in `lib/services.sh` rather than calling `systemctl` directly.
-- **Enforced Strict Bash Mode**: Added `set -euo pipefail` to all executable scripts across commands, root wrappers, and profiles, ensuring robust error tracking and environment stability. Sourced library scripts remain clean and source-safe.
-- **GitHub CLI Keyring Fix**: Cleaned up the dearmor pipe for GitHub CLI to prevent corrupting its GPG key during installations.
+- **Refactored Service Layer**: Modified all service management inside modules to run through custom abstractions (`dem_service_*`) defined in `lib/services.sh` rather than calling raw `systemctl` directly.
+- **Enforced Strict Bash Mode**: Applied `#!/usr/bin/env bash` and `set -euo pipefail` across executable scripts while ensuring library scripts in `lib/` remain shebang-free.
+- **Enhanced Workspace Repair & Validator**: Expanded `./dem.sh repair` and `./dem.sh validate` to audit shebang headers, line endings (LF), executable bits, profile mappings, and facts-based markdown documentation consistency.
