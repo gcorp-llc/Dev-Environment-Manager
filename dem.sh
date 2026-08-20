@@ -50,7 +50,7 @@ Usage
 
   ./dem.sh service [action] [service]
 
-  ./dem.sh profile [list|load <profile>]
+  ./dem.sh profile [list|load|apply <profile>] [--dry-run]
 
   ./dem.sh platform [doctor|rust|keyspaces|all]
 
@@ -73,36 +73,13 @@ load_command() {
 
 }
 
-parse_flags() {
-
-    local args=()
-
-    for arg in "$@"; do
-        if [[ "$arg" == "--dry-run" ]]; then
-            export DEM_DRY_RUN="true"
-        else
-            args+=("$arg")
-        fi
-    done
-
-    # Return parsed non-flag args
-    if [[ ${#args[@]} -gt 0 ]]; then
-        echo "${args[@]}"
-    fi
-
-}
-
 run_install() {
 
     load_command install
 
     shift
 
-    # Parse --dry-run
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_install $parsed
+    dem_command_install "$@"
 
 }
 
@@ -112,10 +89,7 @@ run_uninstall() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_uninstall $parsed
+    dem_command_uninstall "$@"
 
 }
 
@@ -125,10 +99,7 @@ run_configure() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_configure $parsed
+    dem_command_configure "$@"
 
 }
 
@@ -138,10 +109,7 @@ run_verify() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_verify $parsed
+    dem_command_verify "$@"
 
 }
 
@@ -151,10 +119,7 @@ run_remove() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_remove $parsed
+    dem_command_remove "$@"
 
 }
 
@@ -236,10 +201,7 @@ run_service() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_service $parsed
+    dem_command_service "$@"
 
 }
 
@@ -249,10 +211,7 @@ run_profile() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_profile $parsed
+    dem_command_profile "$@"
 
 }
 
@@ -262,10 +221,7 @@ run_platform() {
 
     shift
 
-    local parsed
-    parsed=$(parse_flags "$@")
-
-    dem_command_platform $parsed
+    dem_command_platform "$@"
 
 }
 
@@ -276,6 +232,22 @@ run_version() {
 }
 
 main() {
+
+    local clean_args=()
+
+    for arg in "$@"; do
+        if [[ "$arg" == "--dry-run" ]]; then
+            export DEM_DRY_RUN="true"
+        else
+            clean_args+=("$arg")
+        fi
+    done
+
+    if [[ ${#clean_args[@]} -gt 0 ]]; then
+        set -- "${clean_args[@]}"
+    else
+        set --
+    fi
 
     local command="${1:-help}"
 

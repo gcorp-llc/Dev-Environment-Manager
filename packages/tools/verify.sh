@@ -2,6 +2,12 @@
 set -euo pipefail
 dem_title "Verify CLI Tools & Utilities"
 
+if dem_is_dry_run; then
+    dem_dry_run_log "Verifying CLI tools (gh, kubectl, helm, terraform, htop, btop, fastfetch, ncdu, ripgrep, fzf, fd, bat)"
+    dem_success "CLI tools verification simulated."
+    exit "${DEM_EXIT_SUCCESS:-0}"
+fi
+
 dem_require_command gh
 dem_require_command kubectl
 dem_require_command helm

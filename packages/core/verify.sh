@@ -23,7 +23,11 @@ dem_require_command zip
 dem_require_command tar
 dem_require_command gzip
 dem_require_command bzip2
-dem_require_command 7z
+if dem_command_exists 7z || dem_command_exists 7zr || dem_command_exists 7za; then
+    dem_success "7z utility is available."
+else
+    dem_fatal_code "${DEM_EXIT_PREREQ_MISSING:-2}" "Missing command: 7z"
+fi
 dem_require_command xz
 dem_require_command rsync
 
