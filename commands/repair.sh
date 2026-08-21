@@ -79,7 +79,7 @@ EOF
             dem_info "Converted line endings to LF: $f"
             crlf_count=$((crlf_count + 1))
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $crlf_count -gt 0 ]]; then
         dem_success "Normalized $crlf_count file(s) with CRLF line endings to LF."
@@ -151,7 +151,7 @@ EOF
 
             rm -f "$temp_f" "$temp_filtered" "$temp_stripped" "$temp_final"
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $shebang_count -gt 0 ]]; then
         dem_success "Repaired $shebang_count shebang header(s) / formatting."
@@ -213,7 +213,7 @@ EOF
                 fi
             fi
         fi
-    done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
+    done < <(find . -type f -name "*.sh" -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $perm_count -gt 0 ]]; then
         dem_success "Repaired permissions on $perm_count script(s)."

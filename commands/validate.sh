@@ -16,7 +16,7 @@ dem_command_validate() {
             crlf_found=1
             crlf_files+=("$f")
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $crlf_found -eq 0 ]]; then
         dem_success "Line Endings: All text files use LF line endings."
@@ -59,7 +59,7 @@ dem_command_validate() {
                 shebang_err_files+=("$rel_f (invalid second line: '$second_line', expected 'set -euo pipefail' or 'set -Eeuo pipefail')")
             fi
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $shebang_errors -eq 0 ]]; then
         dem_success "Shebang & BOM: All headers are fully compliant."
@@ -90,7 +90,7 @@ dem_command_validate() {
                 fi
             fi
         fi
-    done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
+    done < <(find . -type f -name "*.sh" -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     for rscript in dem.sh bootstrap.sh; do
         if [[ -f "$rscript" && ! -x "$rscript" ]]; then
@@ -344,7 +344,7 @@ dem_command_validate() {
                 unexpected_exec_files+=("$rel_f")
             fi
         fi
-    done < <(find . -type f -not -path '*/.*' -print0)
+    done < <(find . -type f -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $unexpected_exec -eq 0 ]]; then
         dem_success "File Modes: No unexpected executable files found."

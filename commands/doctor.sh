@@ -67,7 +67,7 @@ dem_command_doctor() {
             crlf_found=1
             crlf_files+=("$f")
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" -o -name "*.service" -o -name "*.conf" -o -name "*.env" -o -name "*.md" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $crlf_found -eq 0 ]]; then
         dem_success "Line Endings: All scripts and text files use LF line endings."
@@ -112,7 +112,7 @@ dem_command_doctor() {
                 shebang_err_files+=("$rel_f (invalid second line: '$second_line', expected 'set -euo pipefail' or 'set -Eeuo pipefail' without blank lines)")
             fi
         fi
-    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -print0)
+    done < <(find . -type f \( -name "*.sh" -o -name "*.profile" \) -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     if [[ $shebang_errors -eq 0 ]]; then
         dem_success "Shebang Headers: Verified correct shebang headers."
@@ -142,7 +142,7 @@ dem_command_doctor() {
                 fi
             fi
         fi
-    done < <(find . -type f -name "*.sh" -not -path '*/.*' -print0)
+    done < <(find . -type f -name "*.sh" -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/.next/*' -print0)
 
     # Check root scripts
     for rscript in dem.sh bootstrap.sh; do
