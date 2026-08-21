@@ -1,0 +1,66 @@
+name: DEM v2.5.0 LTS CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, 'feature/**' ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  cli-validation:
+    name: CLI Static Validation & Syntax Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Make dem.sh Executable
+        run: chmod +x ./dem.sh
+
+      - name: Run DEM Repository Static Validation
+        run: ./dem.sh validate
+
+      - name: Verify Shebangs and Syntax of Bash Scripts
+        run: |
+          echo "Auditing Shebangs and Syntax for all Bash scripts..."
+          find . -name "*.sh" -type f ! -path "./web/*" ! -path "./node_modules/*" | while read -r file; do
+            if [[ "$file" =~ ^\./lib/ ]]; then
+              bash -n "$file"
+            else
+              head -n 1 "$file" | grep -E '^#!/usr/bin/(env bash|bash)' > /dev/null || {
+                echo "Error: Missing or invalid shebang in $file"
+                exit 1
+              }
+              bash -n "$file"
+            fi
+          done
+          echo "All Bash scripts passed shebang and syntax validation."
+
+  web-dashboard-ci:
+    name: Web Dashboard Quality & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
+
+      - name: Install Web Dashboard Dependencies
+        run: |
+          cd web
+          npm ci
+
+      - name: Run Web Dashboard Linter
+        run: |
+          cd web
+          npm run lint
+
+      - name: Build Web Dashboard Production Bundle
+        run: |
+          cd web
+          npm run build
