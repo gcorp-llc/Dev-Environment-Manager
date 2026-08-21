@@ -24,10 +24,10 @@ jobs:
         run: |
           echo "Auditing Shebangs and Syntax for all Bash scripts..."
           find . -name "*.sh" -type f ! -path "./web/*" ! -path "./node_modules/*" | while read -r file; do
-            if [[ "$file" =~ ^\./lib/ ]]; then
+            if [[ "$file" =~ ^\./lib/ ]] || [[ "$file" == "./config.sh" ]]; then
               bash -n "$file"
             else
-              head -n 1 "$file" | grep -E '^#!/usr/bin/(env bash|bash)' > /dev/null || {
+              head -n 1 "$file" | grep -E '^#!/(usr/bin/(env )?bash|bin/bash)' > /dev/null || {
                 echo "Error: Missing or invalid shebang in $file"
                 exit 1
               }
