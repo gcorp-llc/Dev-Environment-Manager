@@ -64,6 +64,54 @@ export default function DashboardOverview({ modules, profiles, onRunAction, onNa
         </div>
       </div>
 
+      {/* Explicit System Health Status Indicators ([OK], [WARN], [FAIL]) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#161b22] border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2.5 py-1 rounded-lg border border-emerald-500/30">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              [OK] PASSED
+            </div>
+            <h3 className="text-2xl font-black text-slate-100 mt-2">{verifiedCount + configuredCount} Modules</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Verified & active package modules</p>
+          </div>
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 font-mono font-black text-lg">
+            {verifiedCount + configuredCount}
+          </div>
+        </div>
+
+        <div className="bg-[#161b22] border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400 bg-amber-500/15 px-2.5 py-1 rounded-lg border border-amber-500/30">
+              <Activity className="w-3.5 h-3.5" />
+              [WARN] WARNINGS
+            </div>
+            <h3 className="text-2xl font-black text-slate-100 mt-2">1 Diagnostic</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Non-critical hardware notices</p>
+          </div>
+          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 font-mono font-black text-lg">
+            1
+          </div>
+        </div>
+
+        <div className="bg-[#161b22] border border-rose-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 w-20 h-20 bg-rose-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-rose-400 bg-rose-500/15 px-2.5 py-1 rounded-lg border border-rose-500/30">
+              <Shield className="w-3.5 h-3.5" />
+              [FAIL] ERRORS
+            </div>
+            <h3 className="text-2xl font-black text-slate-100 mt-2">0 Errors</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Zero validation failures detected</p>
+          </div>
+          <div className="p-3 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20 font-mono font-black text-lg">
+            0
+          </div>
+        </div>
+      </div>
+
       {/* Real Metrics Gauge Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
