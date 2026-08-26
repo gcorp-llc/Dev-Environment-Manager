@@ -31,6 +31,7 @@ export default function ProfilesModulesView({
 }: ProfilesModulesViewProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isDryRun, setIsDryRun] = useState<boolean>(false);
 
   // Modals state
   const [isModuleModalOpen, setIsModuleModalOpen] = useState(false);
@@ -144,16 +145,16 @@ export default function ProfilesModulesView({
 
               <div className="pt-3 border-t border-[#30363d] flex items-center gap-2">
                 <button
-                  onClick={() => onRunAction('install', prof.id)}
+                  onClick={() => onRunAction(isDryRun ? 'install --dry-run' : 'install', prof.id)}
                   className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-emerald-950/30"
                 >
-                  <Play className="w-3 h-3 fill-current" /> Install Profile
+                  <Play className="w-3 h-3 fill-current" /> {isDryRun ? 'Simulate Stack' : 'Install Stack'}
                 </button>
                 <button
-                  onClick={() => onRunAction('uninstall', prof.id)}
+                  onClick={() => onRunAction(isDryRun ? 'uninstall --dry-run' : 'uninstall', prof.id)}
                   className="py-2 px-3 bg-[#21262d] hover:bg-rose-950/40 text-rose-300 border border-[#30363d] hover:border-rose-900 rounded-xl text-xs font-semibold transition-colors"
                 >
-                  Uninstall
+                  {isDryRun ? 'Dry Uninstall' : 'Uninstall'}
                 </button>
               </div>
             </div>
@@ -173,6 +174,24 @@ export default function ProfilesModulesView({
               placeholder="Filter modules by name or APT package (e.g. Docker, PostgreSQL, Go, ScyllaDB)..."
               className="bg-[#0d1117] border border-[#30363d] text-slate-200 placeholder-slate-500 text-xs rounded-xl px-3 py-2 w-full focus:outline-none focus:border-emerald-500"
             />
+          </div>
+
+          {/* Centered --dry-run Toggle Switch */}
+          <div className="flex items-center gap-2 bg-[#0d1117] border border-[#30363d] px-3 py-1.5 rounded-xl shrink-0">
+            <span className="text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isDryRun ? 'animate-spin' : ''}`} />
+              --dry-run
+            </span>
+            <button
+              onClick={() => setIsDryRun(!isDryRun)}
+              className={`w-10 h-5 rounded-full p-0.5 transition-colors ${
+                isDryRun ? 'bg-cyan-500' : 'bg-[#21262d]'
+              }`}
+            >
+              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                isDryRun ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </button>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
@@ -276,24 +295,34 @@ export default function ProfilesModulesView({
                     </span>
                   )}
 
-                  <div className="flex items-center gap-1.5 ml-auto">
+                  <div className="flex items-center gap-1 flex-wrap justify-end ml-auto">
                     <button
-                      onClick={() => onRunAction('verify_module', mod.id, mod)}
-                      className="px-2.5 py-1.5 bg-[#21262d] hover:bg-[#30363d] text-slate-200 rounded-xl border border-[#30363d] transition-colors text-[11px] font-semibold"
+                      onClick={() => onRunAction(isDryRun ? 'install_module --dry-run' : 'install_module', mod.id, mod)}
+                      title="Install Lifecycle Step"
+                      className="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-colors text-[10px] shadow-sm"
+                    >
+                      Install
+                    </button>
+                    <button
+                      onClick={() => onRunAction(isDryRun ? 'configure_module --dry-run' : 'configure_module', mod.id, mod)}
+                      title="Configure Lifecycle Step"
+                      className="px-2 py-1 bg-[#21262d] hover:bg-[#30363d] text-cyan-300 border border-[#30363d] rounded-lg transition-colors text-[10px] font-semibold"
+                    >
+                      Configure
+                    </button>
+                    <button
+                      onClick={() => onRunAction(isDryRun ? 'verify_module --dry-run' : 'verify_module', mod.id, mod)}
+                      title="Verify Lifecycle Step"
+                      className="px-2 py-1 bg-[#21262d] hover:bg-[#30363d] text-slate-200 rounded-lg border border-[#30363d] transition-colors text-[10px] font-semibold"
                     >
                       Verify
                     </button>
                     <button
-                      onClick={() => onRunAction('uninstall_module', mod.id, mod)}
-                      className="px-2.5 py-1.5 bg-[#21262d] hover:bg-rose-950/40 text-rose-300 rounded-xl border border-[#30363d] hover:border-rose-900 transition-colors text-[11px] font-semibold"
+                      onClick={() => onRunAction(isDryRun ? 'uninstall_module --dry-run' : 'uninstall_module', mod.id, mod)}
+                      title="Uninstall Lifecycle Step"
+                      className="px-2 py-1 bg-[#21262d] hover:bg-rose-950/40 text-rose-300 rounded-lg border border-[#30363d] hover:border-rose-900 transition-colors text-[10px] font-semibold"
                     >
                       Purge
-                    </button>
-                    <button
-                      onClick={() => onRunAction('install_module', mod.id, mod)}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-colors text-[11px] shadow-sm"
-                    >
-                      Install
                     </button>
                   </div>
                 </div>
